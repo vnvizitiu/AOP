@@ -18,7 +18,8 @@ namespace ConsoleExample
                 int testIntValue = 5;
                 DateTime testDateTimeValue = DateTime.Now;
 
-                InitializeApp(args);
+                var testValues = new string[] {"value1", "value2", "value3", "value4"};
+                InitializeApp(testValues);
                 ResultModel methodResult = RunMethodWithParamteres(testIntValue, testDateTimeValue);
                 RunWithComplexObject(methodResult);
             }
@@ -48,5 +49,12 @@ namespace ConsoleExample
     {
         public int IntValue { get; set; }
         public DateTime TimeValue { get; set; }
+
+        public List<string> List { get; set; }
+
+        public ResultModel()
+        {
+            List = new List<string>() {"listItem1", "listItem2" , "listItem3" };
+        }
     }
 }

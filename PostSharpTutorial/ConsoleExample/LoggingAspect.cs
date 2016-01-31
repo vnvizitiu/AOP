@@ -1,5 +1,9 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Reflection;
+using System.Runtime.Remoting.Messaging;
+using System.Text;
 using PostSharp.Aspects;
 using PostSharp.Aspects.Configuration;
 
@@ -52,8 +56,42 @@ namespace ConsoleExample
         public override void OnEntry(MethodExecutionArgs args)
         {
             var message = string.Format("Entering method {0}.{1} with ({2})", _className, _methodName,
-                string.Join(",", args.Arguments));
+                GetArguments(args.Arguments.ToArray()));
             Logger.Debug(message);
+        }
+
+        private string GetArguments(object[] arguments)
+        {
+            var formatedArguments = new List<string>();
+            foreach (var argument in arguments)
+            {
+                if (argument == null)
+                    continue;
+                if (argument.GetType().IsValueType)
+                    formatedArguments.Add(string.Format("{0} = {1}", argument.GetType(), argument));
+                else if (argument is IEnumerable)
+                {
+                    var elements = new List<string>();
+                    foreach (var element in argument as IEnumerable)
+                    {
+                        elements.Add(element.ToString());
+                    }
+                    formatedArguments.Add(string.Format("{0} = [{1}]", argument.GetType(), string.Join(" , ", elements)));
+                }
+                else if (argument.GetType().IsClass)
+                {
+                    var properties = argument.GetType().GetProperties();
+                    var members = new List<string>();
+                    foreach (var propertyInfo in properties)
+                    {
+                        members.Add(string.Format("{0} = {1}", propertyInfo.Name, GetArguments(new[] {propertyInfo.GetValue(argument)})));
+                    }
+                    formatedArguments.Add(string.Format("{0} {{ {1} }}", argument.GetType(), string.Join(" , ", members)));
+                }
+
+            }
+            var formatedArgumentString = string.Join(" , ", formatedArguments);
+            return string.IsNullOrWhiteSpace(formatedArgumentString) ? "NULL" : formatedArgumentString;
         }
 
         /// <summary>
@@ -66,7 +104,7 @@ namespace ConsoleExample
         public override void OnExit(MethodExecutionArgs args)
         {
             var message = string.Format("Exiting method {0}.{1} with ({2})", _className, _methodName,
-                string.Join(",", args.Arguments));
+                GetArguments(args.Arguments.ToArray()));
             Logger.Debug(message);
         }
 
@@ -79,8 +117,9 @@ namespace ConsoleExample
         /// is being executed and which are its arguments.</param>
         public override void OnSuccess(MethodExecutionArgs args)
         {
-            var message = string.Format("Successfully finished method {0}.{1} with ({2})", _className, _methodName,
-                string.Join(",", args.Arguments));
+            var returnValue = GetArguments(new[] {args.ReturnValue});
+            var message = string.Format("Successfully finished method {0}.{1} with ({2}) retuning {3}", _className, _methodName,
+                GetArguments(args.Arguments.ToArray()), string.IsNullOrWhiteSpace(returnValue) ? "VOID" : returnValue );
             Logger.Debug(message);
         }
 
@@ -93,7 +132,7 @@ namespace ConsoleExample
         public override void OnException(MethodExecutionArgs args)
         {
             args.FlowBehavior = FlowBehavior.RethrowException;
-            var message = string.Format("An exception occured in method {0}.{1} with ({2})", _className, _methodName, string.Join(",", args.Arguments));
+            var message = string.Format("An exception occured in method {0}.{1} with ({2})", _className, _methodName, GetArguments(args.Arguments.ToArray()));
             Logger.Error(message, args.Exception);
         }
 
@@ -106,7 +145,7 @@ namespace ConsoleExample
         public override void OnResume(MethodExecutionArgs args)
         {
             var message = string.Format("Resuming method {0}.{1} with ({2})", _className, _methodName,
-                string.Join(",", args.Arguments));
+                GetArguments(args.Arguments.ToArray()));
             Logger.Debug(message);
         }
 
@@ -120,7 +159,7 @@ namespace ConsoleExample
         public override void OnYield(MethodExecutionArgs args)
         {
             var message = string.Format("Yielding result from method {0}.{1} with ({2})", _className, _methodName,
-                string.Join(",", args.Arguments));
+                GetArguments(args.Arguments.ToArray()));
             Logger.Debug(message);
         }
 
