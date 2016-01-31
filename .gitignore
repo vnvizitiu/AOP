@@ -1,0 +1,9 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/PostSharpTutorial/ConsoleExample/bin/Debug
+/PostSharpTutorial/ConsoleExample/obj/Debug
+/PostSharpTutorial/.vs/PostSharpTutorial/v14
+/PostSharpTutorial/packages/PostSharp.4.2.18
+*.suo
