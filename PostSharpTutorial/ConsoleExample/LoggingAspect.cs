@@ -66,15 +66,18 @@ namespace ConsoleExample
             foreach (var argument in arguments)
             {
                 if (argument == null)
+                {
+                    formatedArguments.Add("NULL");
                     continue;
-                if (argument.GetType().IsValueType)
+                }
+                if (argument.GetType().IsValueType || argument is string)
                     formatedArguments.Add(string.Format("{0} = {1}", argument.GetType(), argument));
                 else if (argument is IEnumerable)
                 {
                     var elements = new List<string>();
                     foreach (var element in argument as IEnumerable)
                     {
-                        elements.Add(element.ToString());
+                        elements.Add(GetArguments(new[] {element}));
                     }
                     formatedArguments.Add(string.Format("{0} = [{1}]", argument.GetType(), string.Join(" , ", elements)));
                 }
@@ -119,7 +122,7 @@ namespace ConsoleExample
         {
             var returnValue = GetArguments(new[] {args.ReturnValue});
             var message = string.Format("Successfully finished method {0}.{1} with ({2}) retuning {3}", _className, _methodName,
-                GetArguments(args.Arguments.ToArray()), string.IsNullOrWhiteSpace(returnValue) ? "VOID" : returnValue );
+                GetArguments(args.Arguments.ToArray()), returnValue.Equals("NULL") ? "VOID" : returnValue );
             Logger.Debug(message);
         }
 

@@ -18,7 +18,7 @@ namespace ConsoleExample
                 int testIntValue = 5;
                 DateTime testDateTimeValue = DateTime.Now;
 
-                var testValues = new string[] {"value1", "value2", "value3", "value4"};
+                string[] testValues = {null, "value1", "value2", "value3", "value4"};
                 InitializeApp(testValues);
                 ResultModel methodResult = RunMethodWithParamteres(testIntValue, testDateTimeValue);
                 RunWithComplexObject(methodResult);
