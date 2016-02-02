@@ -8,6 +8,10 @@ using System.Threading.Tasks;
 
 namespace ConsoleExample
 {
+    /// <summary>
+    /// http://haacked.com/archive/2009/01/04/fun-with-named-formats-string-parsing-and-edge-cases.aspx/
+    /// http://www.hanselman.com/blog/ASmarterOrPureEvilToStringWithExtensionMethods.aspx
+    /// </summary>
     public static class FormattableObject
     {
         public static string ToString(this object anObject, string aFormat)
