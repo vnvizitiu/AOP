@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.Remoting.Messaging;
 using System.Text;
@@ -67,7 +68,8 @@ namespace ConsoleExample
             {
                 if (argument == null)
                     continue;
-                if (argument.GetType().IsValueType)
+                var type = argument.GetType();
+                if (type.IsValueType)
                     formatedArguments.Add(string.Format("{0} = {1}", argument.GetType(), argument));
                 else if (argument is IEnumerable)
                 {
@@ -78,15 +80,22 @@ namespace ConsoleExample
                     }
                     formatedArguments.Add(string.Format("{0} = [{1}]", argument.GetType(), string.Join(" , ", elements)));
                 }
-                else if (argument.GetType().IsClass)
+                else if (type.IsClass)
                 {
-                    var properties = argument.GetType().GetProperties();
-                    var members = new List<string>();
-                    foreach (var propertyInfo in properties)
+                    
+                    var arrDDA = Attribute.GetCustomAttributes(type, typeof(DebuggerDisplayAttribute));
+
+                    if (arrDDA.Length == 1)
                     {
-                        members.Add(string.Format("{0} = {1}", propertyInfo.Name, GetArguments(new[] {propertyInfo.GetValue(argument)})));
+                        var dda = arrDDA[0] as DebuggerDisplayAttribute;
+                        var val = dda.Value;
+                        formatedArguments.Add(string.Format("{0} = [{1}]", type, argument.ToString(val)));
+
                     }
-                    formatedArguments.Add(string.Format("{0} {{ {1} }}", argument.GetType(), string.Join(" , ", members)));
+                    else
+                    {
+                        formatedArguments.Add(string.Format("{0} {{ {1} }}", type, argument.ToString()));
+                    }
                 }
 
             }
