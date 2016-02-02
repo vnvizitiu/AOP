@@ -49,6 +49,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ConsoleLogger.cs" />
+    <Compile Include="FormattableObject.cs" />
     <Compile Include="ILogger.cs" />
     <Compile Include="LoggingAspect.cs" />
     <Compile Include="NullLogger.cs" />
