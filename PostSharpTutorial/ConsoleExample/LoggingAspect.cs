@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.Remoting.Messaging;
 using System.Text;
@@ -70,26 +71,34 @@ namespace ConsoleExample
                     formatedArguments.Add("NULL");
                     continue;
                 }
-                if (argument.GetType().IsValueType || argument is string)
+                var type = argument.GetType();
+                if (type.IsValueType || argument is string)
                     formatedArguments.Add(string.Format("{0} = {1}", argument.GetType(), argument));
                 else if (argument is IEnumerable)
                 {
                     var elements = new List<string>();
                     foreach (var element in argument as IEnumerable)
                     {
-                        elements.Add(GetArguments(new[] {element}));
+                        elements.Add(GetArguments(new[] { element }));
                     }
                     formatedArguments.Add(string.Format("{0} = [{1}]", argument.GetType(), string.Join(" , ", elements)));
                 }
-                else if (argument.GetType().IsClass)
+                else if (type.IsClass)
                 {
-                    var properties = argument.GetType().GetProperties();
-                    var members = new List<string>();
-                    foreach (var propertyInfo in properties)
+
+                    var arrDDA = Attribute.GetCustomAttributes(type, typeof(DebuggerDisplayAttribute));
+
+                    if (arrDDA.Length == 1)
                     {
-                        members.Add(string.Format("{0} = {1}", propertyInfo.Name, GetArguments(new[] {propertyInfo.GetValue(argument)})));
+                        var dda = arrDDA[0] as DebuggerDisplayAttribute;
+                        var val = dda.Value;
+                        formatedArguments.Add(string.Format("{0} = [{1}]", type, argument.ToString(val)));
+
                     }
-                    formatedArguments.Add(string.Format("{0} {{ {1} }}", argument.GetType(), string.Join(" , ", members)));
+                    else
+                    {
+                        formatedArguments.Add(string.Format("{0} {{ {1} }}", type, argument.ToString()));
+                    }
                 }
 
             }
@@ -120,9 +129,9 @@ namespace ConsoleExample
         /// is being executed and which are its arguments.</param>
         public override void OnSuccess(MethodExecutionArgs args)
         {
-            var returnValue = GetArguments(new[] {args.ReturnValue});
+            var returnValue = GetArguments(new[] { args.ReturnValue });
             var message = string.Format("Successfully finished method {0}.{1} with ({2}) retuning {3}", _className, _methodName,
-                GetArguments(args.Arguments.ToArray()), returnValue.Equals("NULL") ? "VOID" : returnValue );
+                GetArguments(args.Arguments.ToArray()), returnValue.Equals("NULL") ? "VOID" : returnValue);
             Logger.Debug(message);
         }
 
