@@ -14,6 +14,12 @@ namespace ConsoleExample
     [LoggingAspect(AttributeExclude = true)]
     public class LoggingAspect : OnMethodBoundaryAspect
     {
+        public LoggingAspect()
+        {
+            ExcludeProperties = true;
+        }
+        public bool ExcludeProperties { get; set; }
+
         // Logger implementation provided via injection
         private static ILogger _logger;
 
