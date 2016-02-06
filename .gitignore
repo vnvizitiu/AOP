@@ -7,3 +7,13 @@
 /PostSharpTutorial/.vs/PostSharpTutorial/v14
 /PostSharpTutorial/packages/PostSharp.4.2.18
 *.suo
+/PostSharpTutorial/LoggerAspect/bin/Debug
+/PostSharpTutorial/LoggerAspect/obj/Debug
+/PostSharpTutorial/packages/PostSharp.4.2.20/lib
+/PostSharpTutorial/packages/PostSharp.4.2.20
+/PostSharpTutorial/LoggerAspect.Nlog/obj/Debug
+/PostSharpTutorial/packages/NLog.4.2.3
+/PostSharpTutorial/LoggerAspect.Tests/bin/Debug
+/PostSharpTutorial/LoggerAspect.Tests/obj/Debug
+/PostSharpTutorial/packages/Moq.4.2.1510.2205
+/PostSharpTutorial/packages/NUnit.3.0.1
