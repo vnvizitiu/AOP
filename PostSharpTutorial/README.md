@@ -1,6 +1,3 @@
-[![Build status](https://ci.appveyor.com/api/projects/status/01py6e84ktp053vt?svg=true)](https://ci.appveyor.com/project/Janosaudrei/aop)
-
-
 <p>This a series of example of using some of the basic functionalities of PostSharp,</p>
 <p>To build this solution, you will have to have PostSharp installed, and you will also have to register for a PostSharp Licence.</p>
 </p>These implementations also work with the Express Licence from PostSharp, which you will find at the link below.</p>
