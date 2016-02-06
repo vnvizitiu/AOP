@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ConsoleExample
+namespace LoggerAspect
 {
     public class NullLogger : ILogger
     {

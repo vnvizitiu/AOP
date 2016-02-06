@@ -1,14 +1,10 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
-using System.Runtime.Remoting.Messaging;
-using System.Text;
 using PostSharp.Aspects;
-using PostSharp.Aspects.Configuration;
 
-namespace ConsoleExample
+namespace LoggerAspect
 {
     [Serializable]
     [LoggingAspect(AttributeExclude = true)]
