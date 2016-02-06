@@ -21,5 +21,35 @@ namespace ConsoleExample
             Console.WriteLine(exception);
             Console.ForegroundColor = color;
         }
+
+        public void Fatal(string message, Exception exception)
+        {
+            var color = Console.ForegroundColor;
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine(message);
+            Console.WriteLine(exception);
+            Console.ForegroundColor = color;
+        }
+
+        public void Info(string message)
+        {
+            Console.WriteLine(message);
+        }
+
+        public void Trace(string message)
+        {
+            var color = Console.ForegroundColor;
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine(message);
+            Console.ForegroundColor = color;
+        }
+
+        public void Warn(string message)
+        {
+            var color = Console.ForegroundColor;
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine(message);
+            Console.ForegroundColor = color;
+        }
     }
 }

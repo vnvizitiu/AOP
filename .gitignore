@@ -11,3 +11,5 @@
 /PostSharpTutorial/LoggerAspect/obj/Debug
 /PostSharpTutorial/packages/PostSharp.4.2.20/lib
 /PostSharpTutorial/packages/PostSharp.4.2.20
+/PostSharpTutorial/LoggerAspect.Nlog/obj/Debug
+/PostSharpTutorial/packages/NLog.4.2.3

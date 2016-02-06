@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleExample", "ConsoleEx
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LoggerAspect", "LoggerAspect\LoggerAspect.csproj", "{8FF41B7E-0E37-4341-9020-07EBE8B43DA8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LoggerAspect.Nlog", "LoggerAspect.Nlog\LoggerAspect.Nlog.csproj", "{375B7CD4-2ABD-4FDC-8F88-4F70C94D0BBF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{8FF41B7E-0E37-4341-9020-07EBE8B43DA8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8FF41B7E-0E37-4341-9020-07EBE8B43DA8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8FF41B7E-0E37-4341-9020-07EBE8B43DA8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{375B7CD4-2ABD-4FDC-8F88-4F70C94D0BBF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{375B7CD4-2ABD-4FDC-8F88-4F70C94D0BBF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{375B7CD4-2ABD-4FDC-8F88-4F70C94D0BBF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{375B7CD4-2ABD-4FDC-8F88-4F70C94D0BBF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
