@@ -5,5 +5,13 @@
 
 <ul>Dependancy:
   	 <li>PostSharp: https://www.postsharp.net/</li>
-    <li>PostSharp Licence: https://www.postsharp.net/purchase</li>
-</li>
+     <li>PostSharp Licence: https://www.postsharp.net/purchase</li>
+</ul>
+
+<p>This solution contain NuGet referenced to the following projects</p>
+<ul>
+  <li>PostSharp</li>
+  <li>Nlog</li>
+  <li>Moq</li>
+  <li>NUnit</li>
+</ul>
