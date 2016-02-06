@@ -62,54 +62,66 @@ namespace ConsoleExample
         /// after the execution of <see cref="M:PostSharp.Aspects.IOnMethodBoundaryAspect.OnEntry(PostSharp.Aspects.MethodExecutionArgs)" />.</param>
         public override void OnEntry(MethodExecutionArgs args)
         {
+            var arguments = GetArguments(args);
             var message = string.Format("Entering method {0}.{1} with ({2})", _className, _methodName,
-                GetArguments(args.Arguments.ToArray()));
+                FormatAguments(arguments));
             Logger.Debug(message);
         }
 
-        private string GetArguments(object[] arguments)
+        private IDictionary<string, object> GetArguments(MethodExecutionArgs args)
+        {
+            var arguments = new Dictionary<string, object>();
+            var parameters = args.Method.GetParameters();
+            for (int i = 0; i < args.Arguments.Count; i++)
+            {
+                arguments.Add(parameters[i].Name, args.Arguments[i]);
+            }
+            return arguments;
+        }
+
+        private string FormatAguments(IDictionary<string, object> arguments)
         {
             var formatedArguments = new List<string>();
             foreach (var argument in arguments)
             {
-                if (argument == null)
+                if (argument.Value == null)
                 {
                     formatedArguments.Add("NULL");
                     continue;
                 }
-                var type = argument.GetType();
-                if (type.IsValueType || argument is string)
-                    formatedArguments.Add(string.Format("{0} = {1}", argument.GetType(), argument));
-                else if (argument is IEnumerable)
+                var type = argument.Value.GetType();
+                if (type.IsValueType)
                 {
-                    var elements = new List<string>();
-                    foreach (var element in argument as IEnumerable)
-                    {
-                        elements.Add(GetArguments(new[] { element }));
-                    }
-                    formatedArguments.Add(string.Format("{0} = [{1}]", argument.GetType(), string.Join(" , ", elements)));
+                    formatedArguments.Add(string.Format("{0} = {1}", argument.Key, argument.Value));
                 }
                 else if (type.IsClass)
                 {
-
-                    var arrDDA = Attribute.GetCustomAttributes(type, typeof(DebuggerDisplayAttribute));
-
-                    if (arrDDA.Length == 1)
-                    {
-                        var dda = arrDDA[0] as DebuggerDisplayAttribute;
-                        var val = dda.Value;
-                        formatedArguments.Add(string.Format("{0} = [{1}]", type, argument.ToString(val)));
-
-                    }
-                    else
-                    {
-                        formatedArguments.Add(string.Format("{0} {{ {1} }}", type, argument.ToString()));
-                    }
+                    var formatedObject = FormatObject(argument.Value);
+                    formatedArguments.Add(string.Format("{0} = {{ {1} }}", argument.Key, formatedObject));
                 }
-
             }
             var formatedArgumentString = string.Join(" , ", formatedArguments);
             return string.IsNullOrWhiteSpace(formatedArgumentString) ? "NULL" : formatedArgumentString;
+        }
+
+        private static string FormatObject(object argument)
+        {
+            if (argument == null)
+                return "NULL";
+
+            string formatedObject;
+            var arrDDA = GetCustomAttributes(argument.GetType(), typeof(DebuggerDisplayAttribute));
+            if (arrDDA.Length == 1)
+            {
+                var dda = arrDDA[0] as DebuggerDisplayAttribute;
+                var val = dda.Value;
+                formatedObject = argument.ToString(val);
+            }
+            else
+            {
+                formatedObject = argument.ToString();
+            }
+            return formatedObject;
         }
 
         /// <summary>
@@ -121,8 +133,9 @@ namespace ConsoleExample
         /// is being executed and which are its arguments.</param>
         public override void OnExit(MethodExecutionArgs args)
         {
+            var arguments = GetArguments(args);
             var message = string.Format("Exiting method {0}.{1} with ({2})", _className, _methodName,
-                GetArguments(args.Arguments.ToArray()));
+                FormatAguments(arguments));
             Logger.Debug(message);
         }
 
@@ -135,9 +148,10 @@ namespace ConsoleExample
         /// is being executed and which are its arguments.</param>
         public override void OnSuccess(MethodExecutionArgs args)
         {
-            var returnValue = GetArguments(new[] { args.ReturnValue });
+            var arguments = GetArguments(args);
+            var returnValue = FormatObject(args.ReturnValue);
             var message = string.Format("Successfully finished method {0}.{1} with ({2}) retuning {3}", _className, _methodName,
-                GetArguments(args.Arguments.ToArray()), returnValue.Equals("NULL") ? "VOID" : returnValue);
+                FormatAguments(arguments), returnValue.Equals("NULL") ? "VOID" : returnValue);
             Logger.Debug(message);
         }
 
@@ -149,8 +163,9 @@ namespace ConsoleExample
         /// is being executed and which are its arguments.</param>
         public override void OnException(MethodExecutionArgs args)
         {
+            var arguments = GetArguments(args);
             args.FlowBehavior = FlowBehavior.RethrowException;
-            var message = string.Format("An exception occured in method {0}.{1} with ({2})", _className, _methodName, GetArguments(args.Arguments.ToArray()));
+            var message = string.Format("An exception occured in method {0}.{1} with ({2})", _className, _methodName, FormatAguments(arguments));
             Logger.Error(message, args.Exception);
         }
 
@@ -162,8 +177,9 @@ namespace ConsoleExample
         /// is being executed and which are its arguments.</param>
         public override void OnResume(MethodExecutionArgs args)
         {
+            var arguments = GetArguments(args);
             var message = string.Format("Resuming method {0}.{1} with ({2})", _className, _methodName,
-                GetArguments(args.Arguments.ToArray()));
+                FormatAguments(arguments));
             Logger.Debug(message);
         }
 
@@ -176,8 +192,9 @@ namespace ConsoleExample
         /// property gives access to the operand of the <c>yield return</c> statement.</param>
         public override void OnYield(MethodExecutionArgs args)
         {
+            var arguments = GetArguments(args);
             var message = string.Format("Yielding result from method {0}.{1} with ({2})", _className, _methodName,
-                GetArguments(args.Arguments.ToArray()));
+                FormatAguments(arguments));
             Logger.Debug(message);
         }
 
