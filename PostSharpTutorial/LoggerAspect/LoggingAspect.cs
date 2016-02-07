@@ -12,7 +12,7 @@ namespace LoggerAspect
     {
         public LoggingAspect()
         {
-            ExcludeProperties = true;
+            ExcludeProperties = false;
         }
         public bool ExcludeProperties { get; set; }
 
@@ -58,12 +58,33 @@ namespace LoggerAspect
         /// after the execution of <see cref="M:PostSharp.Aspects.IOnMethodBoundaryAspect.OnEntry(PostSharp.Aspects.MethodExecutionArgs)" />.</param>
         public override void OnEntry(MethodExecutionArgs args)
         {
+            if (ExcludeProperties && args.Method.IsHideBySig && args.Method.IsHideBySig && IsProperty(args.Method.Name, args.Instance.GetType()))
+                return;
+
             var arguments = GetArguments(args);
             var message = string.Format("Entering method {0}.{1} with ({2})", _className, _methodName,
                 FormatAguments(arguments));
             Logger.Debug(message);
         }
-
+        /// <summary>
+        /// tries to match property after a method name
+        /// eliminate get_, set_
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        static bool IsProperty(string name, Type type)
+        {
+            
+            if (string.IsNullOrWhiteSpace(name))
+                return false;
+            if (name.Length < 5)
+                return false;
+            //eliminate get_, set_
+            string propName = name.Substring(4);
+            var prop = type.GetProperty(propName);
+            return prop != null;
+        }
         private IDictionary<string, object> GetArguments(MethodExecutionArgs args)
         {
             var arguments = new Dictionary<string, object>();
@@ -129,6 +150,9 @@ namespace LoggerAspect
         /// is being executed and which are its arguments.</param>
         public override void OnExit(MethodExecutionArgs args)
         {
+            if (ExcludeProperties && args.Method.IsHideBySig && IsProperty(args.Method.Name, args.Instance.GetType()))
+                return;
+
             var arguments = GetArguments(args);
             var message = string.Format("Exiting method {0}.{1} with ({2})", _className, _methodName,
                 FormatAguments(arguments));
@@ -144,6 +168,9 @@ namespace LoggerAspect
         /// is being executed and which are its arguments.</param>
         public override void OnSuccess(MethodExecutionArgs args)
         {
+            if (ExcludeProperties && args.Method.IsHideBySig && IsProperty(args.Method.Name, args.Instance.GetType()))
+                return;
+
             var arguments = GetArguments(args);
             var returnValue = FormatObject(args.ReturnValue);
             var message = string.Format("Successfully finished method {0}.{1} with ({2}) retuning {3}", _className, _methodName,

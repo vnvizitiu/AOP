@@ -66,6 +66,7 @@
   <ItemGroup>
     <Compile Include="LoggingAspectTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TestExcludeProperties.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
