@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Diagnostics;
+using LoggerAspect;
+
 
 namespace ConsoleExample
 {
@@ -45,6 +45,7 @@ namespace ConsoleExample
     }
 
     [LoggingAspect]
+    [DebuggerDisplay("ResultModel = IntValue : {IntValue},TimeValue : {TimeValue}")]
     class ResultModel
     {
         public int IntValue { get; set; }
