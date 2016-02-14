@@ -1,10 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
 using NUnit.Framework;
 
 namespace LoggerAspect.Tests
@@ -15,35 +11,37 @@ namespace LoggerAspect.Tests
         [Test]
         public void ShouldLogProperty()
         {
-            var logger = new Mock<ILogger>();
-            LoggingAspect.Logger = logger.Object;
+            var logger = new MockLogger();
+            LoggingAspect.Logger = logger;
             
             var p=new Person();
-            p.Website = "http://msprogrammer.serviciipeweb.ro/";
+            p.Name = Guid.NewGuid().ToString();
             //3 constructor  + 3 property
-            logger.Verify(logger1 => logger1.Debug(It.IsAny<string>()),Times.Exactly(6));
+            Assert.AreEqual(6, logger.DebugCallCount);
         }
+
         [Test]
         public void ShouldNotLogProperty()
         {
-            var logger = new Mock<ILogger>();
-            LoggingAspect.Logger = logger.Object;
+            var logger = new MockLogger();
+            LoggingAspect.Logger = logger;
 
             var p = new PersonExcludeProperty();
-            p.Website = "http://msprogrammer.serviciipeweb.ro/";
+            p.Name = Guid.NewGuid().ToString();
             //3 constructor  
-            logger.Verify(logger1 => logger1.Debug(It.IsAny<string>()), Times.Exactly(3));
+            Assert.AreEqual(3, logger.DebugCallCount);
         }
     }
 
     [LoggingAspect]
     public class Person
     {
-        public string Website { get; set; }
+        public string Name { get; set; }
     }
+
     [LoggingAspect(ExcludeProperties = true)]
     public class PersonExcludeProperty
     {
-        public string Website { get; set; }
+        public string Name { get; set; }
     }
 }

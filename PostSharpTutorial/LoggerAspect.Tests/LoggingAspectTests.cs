@@ -1,5 +1,4 @@
 ﻿using System;
-using Moq;
 using NUnit.Framework;
 
 namespace LoggerAspect.Tests
@@ -10,10 +9,10 @@ namespace LoggerAspect.Tests
         [Test]
         public void WhenCallingWorkingMethod_ShouldHitDebug()
         {
-            var logger = new Mock<ILogger>();
-            LoggingAspect.Logger = logger.Object;
+            var logger = new MockLogger();
+            LoggingAspect.Logger = logger;
             SomeMethod();
-            logger.Verify(logger1 => logger1.Debug(It.IsAny<string>()));
+            Assert.AreEqual(3, logger.DebugCallCount);
         }
 
         [Test]
@@ -21,11 +20,11 @@ namespace LoggerAspect.Tests
         {
             try
             {
-                var logger = new Mock<ILogger>();
-                LoggingAspect.Logger = logger.Object;
+                var logger = new MockLogger();
+                LoggingAspect.Logger = logger;
                 ThrowsException();
-                logger.Verify(logger1 => logger1.Debug(It.IsAny<string>()));
-                logger.Verify(logger1 => logger1.Error(It.IsAny<string>(), It.IsAny<Exception>()));
+                Assert.AreEqual(3, logger.DebugCallCount);
+                Assert.AreEqual(1, logger.ErrorCallCount);
             }
             catch (Exception e)
             {
