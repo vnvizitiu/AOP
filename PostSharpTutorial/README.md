@@ -11,6 +11,5 @@
 <ul>
   <li>PostSharp</li>
   <li>Nlog</li>
-  <li>Moq</li>
   <li>NUnit</li>
 </ul>
