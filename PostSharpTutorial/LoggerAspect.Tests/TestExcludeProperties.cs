@@ -17,7 +17,7 @@ namespace LoggerAspect.Tests
             var p=new Person();
             p.Name = Guid.NewGuid().ToString();
             //3 constructor  + 3 property
-            Assert.AreEqual(6, logger.DebugCallCount);
+            Assert.AreEqual(6, logger.DebugCallCount, "the Debug method was not called 6 times only (Entry, Success, Exit for constructor and propert)");
         }
 
         [Test]
@@ -26,10 +26,11 @@ namespace LoggerAspect.Tests
             var logger = new MockLogger();
             LoggingAspect.Logger = logger;
 
-            var p = new PersonExcludeProperty();
+            var p = new PersonExcludeProperty("123");
             p.Name = Guid.NewGuid().ToString();
+            var a = p.Name;
             //3 constructor  
-            Assert.AreEqual(3, logger.DebugCallCount);
+            Assert.AreEqual(3, logger.DebugCallCount, "the Debug method was not called 3 times only (Entry, Success, Exit for constructor only)");
         }
     }
 
@@ -39,9 +40,23 @@ namespace LoggerAspect.Tests
         public string Name { get; set; }
     }
 
-    [LoggingAspect(ExcludeProperties = true)]
+    [LoggingAspect(Exclude = ExclusionFlags.Properties | ExclusionFlags.StaticConstructor)]
     public class PersonExcludeProperty
     {
+        static PersonExcludeProperty()
+        {
+            
+        }
+
+        public PersonExcludeProperty()
+        {
+        }
+
+        public PersonExcludeProperty(string name)
+        {
+            Name = name;
+        }
+
         public string Name { get; set; }
     }
 }

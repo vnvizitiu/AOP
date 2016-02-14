@@ -45,6 +45,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ExclusionFlags.cs" />
     <Compile Include="FormattableObject.cs" />
     <Compile Include="ILogger.cs" />
     <Compile Include="LoggingAspect.cs" />

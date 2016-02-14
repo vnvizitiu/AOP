@@ -12,23 +12,24 @@ namespace LoggerAspect.Tests
             var logger = new MockLogger();
             LoggingAspect.Logger = logger;
             SomeMethod();
-            Assert.AreEqual(3, logger.DebugCallCount);
+            Assert.AreEqual(3, logger.DebugCallCount, "the Debug method was not called 3 time only (Entry, Succes, Error)");
         }
 
         [Test]
         public void WhenCallingMethodWithException_ShouldHitDebugAndError()
         {
+            var logger = new MockLogger();
+            LoggingAspect.Logger = logger;
             try
-            {
-                var logger = new MockLogger();
-                LoggingAspect.Logger = logger;
+            {             
                 ThrowsException();
-                Assert.AreEqual(3, logger.DebugCallCount);
-                Assert.AreEqual(1, logger.ErrorCallCount);
+
             }
-            catch (Exception e)
+            catch (Exception e) // we leave the base exception type here so we can catch any exception and later verify that it is the right type
             {
-                Assert.IsAssignableFrom(typeof (NotImplementedException), e);
+                Assert.IsAssignableFrom(typeof (NotImplementedException), e, "the catched exception was not if type NotImplementedException");
+                Assert.AreEqual(2, logger.DebugCallCount, "the Debug method was not called 2 times only (Entry, Exit)");
+                Assert.AreEqual(1, logger.ErrorCallCount, "the Error method was not called only one (Exception)");
             }
         }
 

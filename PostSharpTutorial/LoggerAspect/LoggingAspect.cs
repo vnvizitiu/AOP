@@ -10,12 +10,6 @@ namespace LoggerAspect
     [LoggingAspect(AttributeExclude = true)]
     public class LoggingAspect : OnMethodBoundaryAspect
     {
-        public LoggingAspect()
-        {
-            ExcludeProperties = false;
-        }
-        public bool ExcludeProperties { get; set; }
-
         // Logger implementation provided via injection
         private static ILogger _logger;
 
@@ -24,6 +18,8 @@ namespace LoggerAspect
 
         // The method name provided at compile time
         private string _methodName;
+
+        public ExclusionFlags Exclude { get; set; }
 
         public static ILogger Logger
         {
@@ -58,9 +54,6 @@ namespace LoggerAspect
         /// after the execution of <see cref="M:PostSharp.Aspects.IOnMethodBoundaryAspect.OnEntry(PostSharp.Aspects.MethodExecutionArgs)" />.</param>
         public override void OnEntry(MethodExecutionArgs args)
         {
-            if (ExcludeProperties && args.Method.IsHideBySig && args.Method.IsHideBySig && IsProperty(args.Method.Name, args.Instance.GetType()))
-                return;
-
             var arguments = GetArguments(args);
             var message = string.Format("Entering method {0}.{1} with ({2})", _className, _methodName,
                 FormatAguments(arguments));
@@ -150,9 +143,6 @@ namespace LoggerAspect
         /// is being executed and which are its arguments.</param>
         public override void OnExit(MethodExecutionArgs args)
         {
-            if (ExcludeProperties && args.Method.IsHideBySig && IsProperty(args.Method.Name, args.Instance.GetType()))
-                return;
-
             var arguments = GetArguments(args);
             var message = string.Format("Exiting method {0}.{1} with ({2})", _className, _methodName,
                 FormatAguments(arguments));
@@ -168,9 +158,6 @@ namespace LoggerAspect
         /// is being executed and which are its arguments.</param>
         public override void OnSuccess(MethodExecutionArgs args)
         {
-            if (ExcludeProperties && args.Method.IsHideBySig && IsProperty(args.Method.Name, args.Instance.GetType()))
-                return;
-
             var arguments = GetArguments(args);
             var returnValue = FormatObject(args.ReturnValue);
             var message = string.Format("Successfully finished method {0}.{1} with ({2}) retuning {3}", _className, _methodName,
@@ -231,8 +218,17 @@ namespace LoggerAspect
         /// </returns>
         public override bool CompileTimeValidate(MethodBase method)
         {
+            if ((Exclude & ExclusionFlags.StaticConstructor) == ExclusionFlags.StaticConstructor && method.Name.Contains(".cctor"))
+                return false;
+            if ((Exclude & ExclusionFlags.InstanceConstructors) == ExclusionFlags.InstanceConstructors && method.IsConstructor && !method.IsStatic)
+                return false;
+            if ((Exclude & ExclusionFlags.PropertyGetters) == ExclusionFlags.PropertyGetters && method.Name.Contains("get_"))
+                return false;
+            if ((Exclude & ExclusionFlags.PropertySetters) == ExclusionFlags.PropertySetters && method.Name.Contains("set_"))
+                return false;
+            if ((Exclude & ExclusionFlags.Properties) == ExclusionFlags.Properties && (method.Name.Contains("get_") || method.Name.Contains("set_")))
+                return false;
             return !method.Name.Contains("ToString");
         }
-
     }
 }
