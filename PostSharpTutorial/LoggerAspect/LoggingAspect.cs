@@ -59,37 +59,29 @@ namespace LoggerAspect
                 FormatAguments(arguments));
             Logger.Debug(message);
         }
+
         /// <summary>
-        /// tries to match property after a method name
-        /// eliminate get_, set_
+        /// Gets the argument names and values.
         /// </summary>
-        /// <param name="name"></param>
-        /// <param name="type"></param>
+        /// <param name="args">The arguments.</param>
         /// <returns></returns>
-        static bool IsProperty(string name, Type type)
-        {
-            
-            if (string.IsNullOrWhiteSpace(name))
-                return false;
-            if (name.Length < 5)
-                return false;
-            //eliminate get_, set_
-            string propName = name.Substring(4);
-            var prop = type.GetProperty(propName);
-            return prop != null;
-        }
-        private IDictionary<string, object> GetArguments(MethodExecutionArgs args)
+        private static IDictionary<string, object> GetArguments(MethodExecutionArgs args)
         {
             var arguments = new Dictionary<string, object>();
             var parameters = args.Method.GetParameters();
-            for (int i = 0; i < args.Arguments.Count; i++)
+            for (var i = 0; i < args.Arguments.Count; i++)
             {
                 arguments.Add(parameters[i].Name, args.Arguments[i]);
             }
             return arguments;
         }
 
-        private string FormatAguments(IDictionary<string, object> arguments)
+        /// <summary>
+        /// Formats the aguments.
+        /// </summary>
+        /// <param name="arguments">The arguments.</param>
+        /// <returns></returns>
+        private static string FormatAguments(IDictionary<string, object> arguments)
         {
             var formatedArguments = new List<string>();
             foreach (var argument in arguments)
@@ -120,10 +112,12 @@ namespace LoggerAspect
                 return "NULL";
 
             string formatedObject;
-            var arrDDA = GetCustomAttributes(argument.GetType(), typeof(DebuggerDisplayAttribute));
-            if (arrDDA.Length == 1)
+            var arrDda = GetCustomAttributes(argument.GetType(), typeof(DebuggerDisplayAttribute));
+            if (arrDda.Length == 1)
             {
-                var dda = arrDDA[0] as DebuggerDisplayAttribute;
+                var dda = arrDda[0] as DebuggerDisplayAttribute;
+                if (dda == null)
+                    return null;
                 var val = dda.Value;
                 formatedObject = argument.ToString(val);
             }
@@ -220,13 +214,11 @@ namespace LoggerAspect
         {
             if ((Exclude & ExclusionFlags.StaticConstructor) == ExclusionFlags.StaticConstructor && method.Name.Contains(".cctor"))
                 return false;
-            if ((Exclude & ExclusionFlags.InstanceConstructors) == ExclusionFlags.InstanceConstructors && method.IsConstructor && !method.IsStatic)
+            if ((Exclude & ExclusionFlags.InstanceConstructors) == ExclusionFlags.InstanceConstructors && method.Name.Contains(".ctor"))
                 return false;
             if ((Exclude & ExclusionFlags.PropertyGetters) == ExclusionFlags.PropertyGetters && method.Name.Contains("get_"))
                 return false;
             if ((Exclude & ExclusionFlags.PropertySetters) == ExclusionFlags.PropertySetters && method.Name.Contains("set_"))
-                return false;
-            if ((Exclude & ExclusionFlags.Properties) == ExclusionFlags.Properties && (method.Name.Contains("get_") || method.Name.Contains("set_")))
                 return false;
             return !method.Name.Contains("ToString");
         }

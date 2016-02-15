@@ -4,12 +4,12 @@ namespace LoggerAspect.Tests
 {
     public class MockLogger : ILogger
     {
-        public int DebugCallCount { get; set; }
-        public int ErrorCallCount { get; set; }
-        public int FatalCallCount { get; set; }
-        public int InfoCallCount { get; set; }
-        public int TraceCallCount { get; set; }
-        public int WarnCallCount { get; set; }
+        public int DebugCallCount { get; private set; }
+        public int ErrorCallCount { get; private set; }
+        public int FatalCallCount { get; private set; }
+        public int InfoCallCount { get; private set; }
+        public int TraceCallCount { get; private set; }
+        public int WarnCallCount { get; private set; }
 
 
         public void Debug(string message)

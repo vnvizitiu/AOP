@@ -19,3 +19,5 @@
 /PostSharpTutorial/packages/NUnit.3.0.1
 /PostSharpTutorial/LoggerAspect.Nlog/bin/Debug
 /PostSharpTutorial/.vs/config/applicationhost.config
+/PostSharpTutorial/packages/FluentAssertions.4.2.2
+/PostSharpTutorial/PostSharpTutorial.sln.DotSettings.user
