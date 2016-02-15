@@ -9,7 +9,8 @@
 
 <p>This solution contain NuGet referenced to the following projects</p>
 <ul>
-  <li>PostSharp</li>
-  <li>Nlog</li>
-  <li>NUnit</li>
+  <li>PostSharp - self explained, to use the PostSharp functionalities</li>
+  <li>Nlog - for the NLog implementation</li>
+  <li>NUnit - personal preference for testing framework</li>
+  <li>FluentAssertions - a framework that provides more readable unit test asserts, kind of like a live documentation</li>
 </ul>
