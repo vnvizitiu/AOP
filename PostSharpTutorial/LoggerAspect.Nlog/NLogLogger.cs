@@ -1,6 +1,6 @@
 ﻿using System;
 using NLog;
-using NLog.Fluent;
+using ILogger = LoggerAspect.Interfaces.ILogger;
 
 namespace LoggerAspect.Nlog
 {
@@ -9,7 +9,7 @@ namespace LoggerAspect.Nlog
     /// </summary>
     public class NLogLogger : ILogger
     {
-        private Logger _logger;
+        private readonly Logger _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="NLogLogger"/> class.

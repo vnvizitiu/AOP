@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace LoggerAspect
+namespace LoggerAspect.Interfaces
 {
     /// <summary>
     /// Interface for implementing a logger
