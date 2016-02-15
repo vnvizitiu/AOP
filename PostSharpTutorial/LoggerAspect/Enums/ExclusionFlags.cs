@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace LoggerAspect
+namespace LoggerAspect.Enums
 {
     [Flags]
     public enum ExclusionFlags

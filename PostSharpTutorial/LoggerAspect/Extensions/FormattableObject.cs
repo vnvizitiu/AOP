@@ -3,7 +3,7 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace LoggerAspect
+namespace LoggerAspect.Extensions
 {
     /// <summary>
     /// http://haacked.com/archive/2009/01/04/fun-with-named-formats-string-parsing-and-edge-cases.aspx/

@@ -1,4 +1,5 @@
 ﻿using System;
+using LoggerAspect.Interfaces;
 
 namespace LoggerAspect.Tests
 {

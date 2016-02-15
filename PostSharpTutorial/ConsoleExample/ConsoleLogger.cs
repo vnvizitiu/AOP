@@ -1,5 +1,6 @@
 ﻿using System;
 using LoggerAspect;
+using LoggerAspect.Interfaces;
 
 namespace ConsoleExample
 {
