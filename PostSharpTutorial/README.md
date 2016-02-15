@@ -12,4 +12,5 @@
   <li>PostSharp</li>
   <li>Nlog</li>
   <li>NUnit</li>
+  <li>FluentAssertions</li>
 </ul>
