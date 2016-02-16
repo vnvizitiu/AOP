@@ -154,13 +154,13 @@ namespace LoggerAspect
         /// </returns>
         public override bool CompileTimeValidate(MethodBase method)
         {
-            if ((Exclude & ExclusionFlags.StaticConstructor) == ExclusionFlags.StaticConstructor && method.Name.Contains(".cctor"))
+            if ((Exclude & ExclusionFlags.StaticConstructor) == ExclusionFlags.StaticConstructor && method.Name.StartsWith(".cctor"))
                 return false;
-            if ((Exclude & ExclusionFlags.InstanceConstructors) == ExclusionFlags.InstanceConstructors && method.Name.Contains(".ctor"))
+            if ((Exclude & ExclusionFlags.InstanceConstructors) == ExclusionFlags.InstanceConstructors && method.Name.StartsWith(".ctor"))
                 return false;
-            if ((Exclude & ExclusionFlags.PropertyGetters) == ExclusionFlags.PropertyGetters && method.Name.Contains("get_"))
+            if ((Exclude & ExclusionFlags.PropertyGetters) == ExclusionFlags.PropertyGetters && method.Name.StartsWith("get_"))
                 return false;
-            if ((Exclude & ExclusionFlags.PropertySetters) == ExclusionFlags.PropertySetters && method.Name.Contains("set_"))
+            if ((Exclude & ExclusionFlags.PropertySetters) == ExclusionFlags.PropertySetters && method.Name.StartsWith("set_"))
                 return false;
             return !method.Name.Contains("ToString");
         }
