@@ -1,5 +1,6 @@
 ﻿using System;
 using FluentAssertions;
+using LoggerAspect.Enums;
 using NUnit.Framework;
 
 namespace LoggerAspect.Tests
@@ -7,25 +8,29 @@ namespace LoggerAspect.Tests
     [TestFixture]
     public class LoggingAspectBaseFunctionalityTests
     {
+        private MockLogger _logger;
+
+        [SetUp]
+        public void InitializeTest()
+        {
+            _logger = new MockLogger();
+            LoggingAspect.Logger = _logger;
+        }
+
         [Test]
         public void WhenCallingWorkingMethod_ShouldHitDebug3Times()
         {
-            // arrange
-            var logger = new MockLogger();
-            LoggingAspect.Logger = logger;
             // act
             SomeMethod();
 
             // assert
-            logger.DebugCallCount.Should().Be(3, "because we only hit the Entry, Succes, and Exit methods");
+            _logger.DebugCallCount.Should().Be(3, "because we only hit the Entry, Succes, and Exit methods");
         }
 
         [Test]
         public void WhenCallingMethodWithException_ShouldHitDebugAndError()
         {
-            // arrange
-            var logger = new MockLogger();
-            LoggingAspect.Logger = logger;
+
 
             // act
             try
@@ -35,9 +40,9 @@ namespace LoggerAspect.Tests
             catch (Exception e) // we leave the base exception type here so we can catch any exception and later verify that it is the right type
             {
                 // assert
-                e.Should().BeOfType<NotImplementedException>("because we only explictly threw a NotImplementedException");
-                logger.DebugCallCount.Should().Be(2, "becase we should only hit the Entry and Exit methods");
-                logger.ErrorCallCount.Should().Be(1, "because we should hit the Exception method");
+                e.Should().BeOfType<NotImplementedException>("because we only explicitly threw a NotImplementedException");
+                _logger.DebugCallCount.Should().Be(2, "becase we should only hit the Entry and Exit methods");
+                _logger.ErrorCallCount.Should().Be(1, "because we should hit the Exception method");
             }
         }
 

@@ -26,18 +26,6 @@ namespace LoggerAspect
 
         // The method name provided at compile time
         private string _methodName;
-        [NonSerialized]
-        private Action<string> _entryLogger;
-        [NonSerialized]
-        private Action<string, Exception> _exceptionLogger;
-        [NonSerialized]
-        private Action<string> _exitLogger;
-        [NonSerialized]
-        private Action<string> _resumeLogger;
-        [NonSerialized]
-        private Action<string> _successLogger;
-        [NonSerialized]
-        private Action<string> _yieldLogger;
 
         /// <summary>
         /// Gets or sets the logger.
@@ -64,72 +52,6 @@ namespace LoggerAspect
         /// The exclude flags.
         /// </value>
         public ExclusionFlags Exclude { get; set; }
-
-        private Action<string> EntryLogger
-        {
-            get
-            {
-                if (_entryLogger == null)
-                    _entryLogger = Logger.Debug;
-                return _entryLogger;
-            }
-            set { _entryLogger = value; }
-        }
-
-        private Action<string, Exception> ExceptionLogger
-        {
-            get
-            {
-                if (_exceptionLogger == null)
-                    _exceptionLogger = Logger.Error;
-                return _exceptionLogger;
-            }
-            set { _exceptionLogger = value; }
-        }
-
-        private Action<string> ExitLogger
-        {
-            get
-            {
-                if (_exitLogger == null)
-                    _exitLogger = Logger.Debug;
-                return _exitLogger;
-            }
-            set { _exitLogger = value; }
-        }
-
-        private Action<string> ResumeLogger
-        {
-            get
-            {
-                if (_resumeLogger == null)
-                    _resumeLogger = Logger.Debug;
-                return _resumeLogger;
-            }
-            set { _resumeLogger = value; }
-        }
-
-        private Action<string> SuccessLogger
-        {
-            get
-            {
-                if (_successLogger == null)
-                    _successLogger = Logger.Debug;
-                return _successLogger;
-            }
-            set { _successLogger = value; }
-        }
-
-        private Action<string> YieldLogger
-        {
-            get
-            {
-                if (_yieldLogger == null)
-                    _yieldLogger = Logger.Debug;
-                return _yieldLogger;
-            }
-            set { _yieldLogger = value; }
-        }
 
         /// <summary>
         /// Method invoked at build time to initialize the instance fields of the current aspect. This method is invoked
@@ -177,7 +99,7 @@ namespace LoggerAspect
             var arguments = GetArguments(args);
             var message = string.Format("Entering method {0}.{1} with ({2})", _className, _methodName,
                 FormatAguments(arguments));
-            EntryLogger(message);
+            Logger.Debug(message);
         }
 
         /// <summary>
@@ -191,7 +113,7 @@ namespace LoggerAspect
             var arguments = GetArguments(args);
             args.FlowBehavior = FlowBehavior.RethrowException;
             var message = string.Format("An exception occured in method {0}.{1} with ({2})", _className, _methodName, FormatAguments(arguments));
-            ExceptionLogger(message, args.Exception);
+            Logger.Error(message, args.Exception);
         }
 
         /// <summary>
@@ -206,7 +128,7 @@ namespace LoggerAspect
             var arguments = GetArguments(args);
             var message = string.Format("Exiting method {0}.{1} with ({2})", _className, _methodName,
                 FormatAguments(arguments));
-            ExitLogger(message);
+            Logger.Debug(message);
         }
 
         /// <summary>
@@ -220,7 +142,7 @@ namespace LoggerAspect
             var arguments = GetArguments(args);
             var message = string.Format("Resuming method {0}.{1} with ({2})", _className, _methodName,
                 FormatAguments(arguments));
-            ResumeLogger(message);
+            Logger.Debug(message);
         }
 
         /// <summary>
@@ -236,7 +158,7 @@ namespace LoggerAspect
             var returnValue = FormatObject(args.ReturnValue);
             var message = string.Format("Successfully finished method {0}.{1} with ({2}) retuning {3}", _className, _methodName,
                 FormatAguments(arguments), returnValue.Equals("NULL") ? "VOID" : returnValue);
-            SuccessLogger(message);
+            Logger.Debug(message);
         }
 
         /// <summary>
@@ -251,146 +173,9 @@ namespace LoggerAspect
             var arguments = GetArguments(args);
             var message = string.Format("Yielding result from method {0}.{1} with ({2})", _className, _methodName,
                 FormatAguments(arguments));
-            YieldLogger(message);
+            Logger.Debug(message);
         }
 
-        /// <summary>
-        /// Sets the on entry log level.
-        /// </summary>
-        /// <param name="logLevel">The level.</param>
-        public void SetOnEntryLevel(LoggingLevel logLevel)
-        {
-            switch (logLevel)
-            {
-                case LoggingLevel.Debug:
-                    EntryLogger = Logger.Debug;
-                    break;
-                case LoggingLevel.Info:
-                    EntryLogger = Logger.Info;
-                    break;
-                case LoggingLevel.Trace:
-                    EntryLogger = Logger.Trace;
-                    break;
-                case LoggingLevel.Warn:
-                    EntryLogger = Logger.Warn;
-                    break;
-
-            }
-
-        }
-
-        /// <summary>
-        /// Sets the on exception level.
-        /// </summary>
-        /// <param name="logLevel">The log level.</param>
-        public void SetOnExceptionLevel(LoggingLevel logLevel)
-        {
-            switch (logLevel)
-            {
-                case LoggingLevel.Error:
-                    ExceptionLogger = Logger.Error;
-                    break;
-                case LoggingLevel.Fatal:
-                    ExceptionLogger = Logger.Fatal;
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// Sets the on exit level.
-        /// </summary>
-        /// <param name="logLevel">The log level.</param>
-        public void SetOnExitLevel(LoggingLevel logLevel)
-        {
-            switch (logLevel)
-            {
-                case LoggingLevel.Debug:
-                    ExitLogger = Logger.Debug;
-                    break;
-                case LoggingLevel.Info:
-                    ExitLogger = Logger.Info;
-                    break;
-                case LoggingLevel.Trace:
-                    ExitLogger = Logger.Trace;
-                    break;
-                case LoggingLevel.Warn:
-                    ExitLogger = Logger.Warn;
-                    break;
-
-            }
-        }
-
-        /// <summary>
-        /// Sets the on resume level.
-        /// </summary>
-        /// <param name="logLevel">The log level.</param>
-        public void SetOnResumeLevel(LoggingLevel logLevel)
-        {
-            switch (logLevel)
-            {
-                case LoggingLevel.Debug:
-                    ResumeLogger = Logger.Debug;
-                    break;
-                case LoggingLevel.Info:
-                    ResumeLogger = Logger.Info;
-                    break;
-                case LoggingLevel.Trace:
-                    ResumeLogger = Logger.Trace;
-                    break;
-                case LoggingLevel.Warn:
-                    ResumeLogger = Logger.Warn;
-                    break;
-
-            }
-        }
-
-        /// <summary>
-        /// Sets the on success level.
-        /// </summary>
-        /// <param name="logLevel">The log level.</param>
-        public void SetOnSuccessLevel(LoggingLevel logLevel)
-        {
-            switch (logLevel)
-            {
-                case LoggingLevel.Debug:
-                    SuccessLogger = Logger.Debug;
-                    break;
-                case LoggingLevel.Info:
-                    SuccessLogger = Logger.Info;
-                    break;
-                case LoggingLevel.Trace:
-                    SuccessLogger = Logger.Trace;
-                    break;
-                case LoggingLevel.Warn:
-                    SuccessLogger = Logger.Warn;
-                    break;
-
-            }
-        }
-
-        /// <summary>
-        /// Sets the on yield level.
-        /// </summary>
-        /// <param name="logLevel">The log level.</param>
-        public void SetOnYieldLevel(LoggingLevel logLevel)
-        {
-            switch (logLevel)
-            {
-                case LoggingLevel.Debug:
-                    YieldLogger = Logger.Debug;
-                    break;
-                case LoggingLevel.Info:
-                    YieldLogger = Logger.Info;
-                    break;
-                case LoggingLevel.Trace:
-                    YieldLogger = Logger.Trace;
-                    break;
-                case LoggingLevel.Warn:
-                    YieldLogger = Logger.Warn;
-                    break;
-
-            }
-        }
 
         private static string FormatAguments(IDictionary<string, object> arguments)
         {
