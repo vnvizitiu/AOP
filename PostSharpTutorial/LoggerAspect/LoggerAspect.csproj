@@ -45,10 +45,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="FormattableObject.cs" />
-    <Compile Include="ILogger.cs" />
+    <Compile Include="Enums\ExclusionFlags.cs" />
+    <Compile Include="Extensions\FormattableObject.cs" />
+    <Compile Include="Interfaces\ILogger.cs" />
     <Compile Include="LoggingAspect.cs" />
-    <Compile Include="NullLogger.cs" />
+    <Compile Include="Enums\LoggingLevel.cs" />
+    <Compile Include="Concrete\NullLogger.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

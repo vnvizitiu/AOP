@@ -1,6 +1,7 @@
 ﻿using System;
+using LoggerAspect.Interfaces;
 
-namespace LoggerAspect
+namespace LoggerAspect.Concrete
 {
     public class NullLogger : ILogger
     {
