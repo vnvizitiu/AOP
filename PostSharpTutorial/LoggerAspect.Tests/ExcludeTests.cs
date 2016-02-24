@@ -1,12 +1,14 @@
 ﻿using System;
 using FluentAssertions;
 using LoggerAspect.Enums;
+using LoggerAspect.Tests.Dummies;
+using LoggerAspect.Tests.Mocks;
 using NUnit.Framework;
 
 namespace LoggerAspect.Tests
 {
     [TestFixture]
-    public class TestExcludeProperties
+    public class ExcludeTests
     {
         private MockLogger _logger;
 

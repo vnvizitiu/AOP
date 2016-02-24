@@ -1,7 +1,12 @@
 ﻿using LoggerAspect.Enums;
 
-namespace LoggerAspect.Tests
+namespace LoggerAspect.Tests.Dummies
 {
+    [LoggingAspect]
+    public class Generic<T>
+    {
+        public T MyValue { get; set; }
+    }
 
     [LoggingAspect]
     public class Person
