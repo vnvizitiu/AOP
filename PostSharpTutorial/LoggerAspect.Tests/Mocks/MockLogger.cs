@@ -1,7 +1,7 @@
 ﻿using System;
 using LoggerAspect.Interfaces;
 
-namespace LoggerAspect.Tests
+namespace LoggerAspect.Tests.Mocks
 {
     public class MockLogger : ILogger
     {

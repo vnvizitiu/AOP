@@ -1,6 +1,7 @@
 ﻿using System;
 using FluentAssertions;
 using LoggerAspect.Enums;
+using LoggerAspect.Tests.Mocks;
 using NUnit.Framework;
 
 namespace LoggerAspect.Tests
