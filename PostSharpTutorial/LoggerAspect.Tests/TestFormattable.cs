@@ -1,4 +1,5 @@
-﻿using LoggerAspect;
+﻿using FluentAssertions;
+using LoggerAspect;
 using LoggerAspect.Extensions;
 using NUnit.Framework;
 
@@ -14,7 +15,7 @@ namespace LoggerAspect.Tests
             var p = new Person();
             p.Name = site;
             var str = p.ToString("{Name}");
-            Assert.AreEqual(str, site);
+            str.Should().Be(site);            
 
         }
     }
