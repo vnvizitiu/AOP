@@ -2,7 +2,10 @@
 <p>To build this solution, you will have to have PostSharp installed, and you will also have to register for a PostSharp Licence.</p>
 </p>These implementations also work with the Express Licence from PostSharp, which you will find at the link below.</p>
 
-<ul>Dependancy:
+NuGet package: https://www.nuget.org/packages/LoggerAspect/
+
+Dependancy:
+<ul>
   	 <li>PostSharp: https://www.postsharp.net/</li>
      <li>PostSharp Licence: https://www.postsharp.net/purchase</li>
 </ul>
