@@ -27,6 +27,9 @@ namespace LoggerAspect
         // The method name provided at compile time
         private string _methodName;
 
+        [NonSerialized]
+        private Stopwatch _stopwatch;
+
         /// <summary>
         /// Gets or sets the logger.
         /// </summary>
@@ -46,12 +49,46 @@ namespace LoggerAspect
         }
 
         /// <summary>
+        /// Gets or sets a value indicating whether to log the parameters.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if the parameters should be logged; otherwise, <c>false</c>.
+        /// </value>
+        public bool LogParameters { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether to log the execution time of a method.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if the execution time should be logged; otherwise, <c>false</c>.
+        /// </value>
+        public bool LogExecutionTime { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether to log the return value.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if return value should be logged; otherwise, <c>false</c>.
+        /// </value>
+        public bool LogReturnValue { get; set; }
+
+        /// <summary>
         /// Gets or sets the exclude flags.
         /// </summary>
         /// <value>
         /// The exclude flags.
         /// </value>
         public ExclusionFlags Exclude { get; set; }
+
+        private Stopwatch Stopwatch
+        {
+            get
+            {
+                if (_stopwatch == null)
+                    _stopwatch = new Stopwatch();
+                return _stopwatch;
+            }
+        }
 
         /// <summary>
         /// Method invoked at build time to initialize the instance fields of the current aspect. This method is invoked
@@ -96,9 +133,17 @@ namespace LoggerAspect
         /// <exception cref="Exception">A delegate callback throws an exception.</exception>
         public override void OnEntry(MethodExecutionArgs args)
         {
-            var arguments = GetArguments(args);
-            var message = string.Format("Entering method {0}.{1} with ({2})", _className, _methodName,
-                FormatAguments(arguments));
+            var message = string.Format("Entering method {0}.{1}", _className, _methodName);
+
+            if (LogExecutionTime)
+            {
+                Stopwatch.Start();
+            }
+            if (LogParameters)
+            {
+                var arguments = GetArguments(args);
+                message = string.Format("{0} with ({1})", message, FormatAguments(arguments));
+            }
             Logger.Debug(message);
         }
 
@@ -110,9 +155,14 @@ namespace LoggerAspect
         /// is being executed and which are its arguments.</param>
         public override void OnException(MethodExecutionArgs args)
         {
-            var arguments = GetArguments(args);
             args.FlowBehavior = FlowBehavior.RethrowException;
-            var message = string.Format("An exception occured in method {0}.{1} with ({2})", _className, _methodName, FormatAguments(arguments));
+            var message = string.Format("An exception occured in method {0}.{1}", _className, _methodName);
+
+            if (LogParameters)
+            {
+                var arguments = GetArguments(args);
+                message = string.Format("{0} with ({1})", message, FormatAguments(arguments));
+            }
             Logger.Error(message, args.Exception);
         }
 
@@ -125,9 +175,17 @@ namespace LoggerAspect
         /// is being executed and which are its arguments.</param>
         public override void OnExit(MethodExecutionArgs args)
         {
-            var arguments = GetArguments(args);
-            var message = string.Format("Exiting method {0}.{1} with ({2})", _className, _methodName,
-                FormatAguments(arguments));
+            var message = string.Format("Exiting method {0}.{1}", _className, _methodName);
+            if (LogParameters)
+            {
+                var arguments = GetArguments(args);
+                message = string.Format("{0} with ({1})", message, FormatAguments(arguments));
+            }
+            if (LogExecutionTime)
+            {
+                message = string.Format("{0} and lasted ({1})", message, Stopwatch.Elapsed);
+                Stopwatch.Stop();
+            }
             Logger.Debug(message);
         }
 
@@ -139,9 +197,16 @@ namespace LoggerAspect
         /// is being executed and which are its arguments.</param>
         public override void OnResume(MethodExecutionArgs args)
         {
-            var arguments = GetArguments(args);
-            var message = string.Format("Resuming method {0}.{1} with ({2})", _className, _methodName,
-                FormatAguments(arguments));
+            var message = string.Format("Resuming method {0}.{1}", _className, _methodName);
+            if (LogExecutionTime)
+            {
+                Stopwatch.Start();
+            }
+            if (LogParameters)
+            {
+                var arguments = GetArguments(args);
+                message = string.Format("{1} with ({2})", FormatAguments(arguments));
+            }
             Logger.Debug(message);
         }
 
@@ -154,10 +219,17 @@ namespace LoggerAspect
         /// is being executed and which are its arguments.</param>
         public override void OnSuccess(MethodExecutionArgs args)
         {
-            var arguments = GetArguments(args);
-            var returnValue = FormatObject(args.ReturnValue);
-            var message = string.Format("Successfully finished method {0}.{1} with ({2}) retuning {3}", _className, _methodName,
-                FormatAguments(arguments), returnValue.Equals("NULL") ? "VOID" : returnValue);
+            var message = string.Format("Successfully finished method {0}.{1}", _className, _methodName);
+            if (LogParameters)
+            {
+                var arguments = GetArguments(args);
+                message = string.Format("{0} with ({1})", message, FormatAguments(arguments));
+            }
+            if (LogReturnValue)
+            {
+                var returnValue = FormatObject(args.ReturnValue);
+                message = string.Format("{0} returning {1}", message, returnValue.Equals("NULL") ? "VOID" : returnValue);
+            }
             Logger.Debug(message);
         }
 
@@ -170,9 +242,22 @@ namespace LoggerAspect
         /// property gives access to the operand of the <c>yield return</c> statement.</param>
         public override void OnYield(MethodExecutionArgs args)
         {
-            var arguments = GetArguments(args);
-            var message = string.Format("Yielding result from method {0}.{1} with ({2})", _className, _methodName,
-                FormatAguments(arguments));
+            var message = string.Format("Yielding result from method {0}.{1}", _className, _methodName);
+            if (LogParameters)
+            {
+                var arguments = GetArguments(args);
+                message = string.Format("{0} with ({1})", message, FormatAguments(arguments));
+            }
+            if (LogReturnValue)
+            {
+                var returnValue = FormatObject(args.ReturnValue);
+                message = string.Format("{0} returning {1}", message, returnValue.Equals("NULL") ? "VOID" : returnValue);
+            }
+            if (LogExecutionTime)
+            {
+                message = string.Format("{0} and lasted ({1})", message, Stopwatch.Elapsed);
+                Stopwatch.Stop();
+            }
             Logger.Debug(message);
         }
 
