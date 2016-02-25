@@ -21,3 +21,11 @@
 /PostSharpTutorial/.vs/config/applicationhost.config
 /PostSharpTutorial/packages/FluentAssertions.4.2.2
 /PostSharpTutorial/PostSharpTutorial.sln.DotSettings.user
+/PostSharpTutorial/ConsoleExample/bin/Release
+/PostSharpTutorial/ConsoleExample/obj/Release
+/PostSharpTutorial/LoggerAspect/bin/Release
+/PostSharpTutorial/LoggerAspect/obj/Release
+/PostSharpTutorial/LoggerAspect.Nlog/bin/Release
+/PostSharpTutorial/LoggerAspect.Nlog/obj/Release
+/PostSharpTutorial/LoggerAspect.Tests/bin/Release
+/PostSharpTutorial/LoggerAspect.Tests/obj/Release

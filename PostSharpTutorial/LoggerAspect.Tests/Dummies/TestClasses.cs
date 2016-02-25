@@ -1,7 +1,28 @@
-﻿using LoggerAspect.Enums;
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Threading;
+using LoggerAspect.Enums;
 
 namespace LoggerAspect.Tests.Dummies
 {
+    [LoggingAspect(LogParameters = true, LogExecutionTime = true, LogReturnValue = true)]
+    public class FullTestClass
+    {
+        public string Value { get; set; }
+
+        public void EmbeddedMethods()
+        {
+            Thread.Sleep(TimeSpan.FromSeconds(1));
+            InnerMethod();
+        }
+
+        private void InnerMethod()
+        {
+            Thread.Sleep(TimeSpan.FromSeconds(.5));
+        }
+    }
+
     [LoggingAspect]
     public class Generic<T>
     {
