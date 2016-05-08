@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 using LoggerAspect.Concrete;
 using LoggerAspect.Enums;
@@ -21,8 +22,9 @@ namespace LoggerAspect
         // Logger implementation provided via injection
         private static ILogger _logger;
 
-        // The class name provided at compile time
-        private string _className;
+        // The declaring type of the method provided at compile time
+        private Type _declaringType;
+
 
         // The method name provided at compile time
         private string _methodName;
@@ -100,7 +102,7 @@ namespace LoggerAspect
         {
             _methodName = method.Name;
             if (method.DeclaringType != null)
-                _className = method.DeclaringType.FullName;
+                _declaringType = method.DeclaringType;
         }
 
         /// <summary>
@@ -113,6 +115,10 @@ namespace LoggerAspect
         /// </returns>
         public override bool CompileTimeValidate(MethodBase method)
         {
+            if (method.Name.Contains("ToString"))
+                return false;
+            if (typeof(ILogger).IsAssignableFrom(_declaringType))
+                return false;
             if ((Exclude & ExclusionFlags.StaticConstructor) == ExclusionFlags.StaticConstructor && method.Name.StartsWith(".cctor"))
                 return false;
             if ((Exclude & ExclusionFlags.InstanceConstructors) == ExclusionFlags.InstanceConstructors && method.Name.StartsWith(".ctor"))
@@ -121,7 +127,7 @@ namespace LoggerAspect
                 return false;
             if ((Exclude & ExclusionFlags.PropertySetters) == ExclusionFlags.PropertySetters && method.Name.StartsWith("set_"))
                 return false;
-            return !method.Name.Contains("ToString");
+            return true;
         }
 
         /// <summary>
@@ -133,7 +139,7 @@ namespace LoggerAspect
         /// <exception cref="Exception">A delegate callback throws an exception.</exception>
         public override void OnEntry(MethodExecutionArgs args)
         {
-            var message = string.Format("Entering method {0}.{1}", _className, _methodName);
+            var message = string.Format("Entering method {0}.{1}", _declaringType.FullName, _methodName);
 
             if (LogExecutionTime)
             {
@@ -156,7 +162,7 @@ namespace LoggerAspect
         public override void OnException(MethodExecutionArgs args)
         {
             args.FlowBehavior = FlowBehavior.RethrowException;
-            var message = string.Format("An exception occured in method {0}.{1}", _className, _methodName);
+            var message = string.Format("An exception occured in method {0}.{1}", _declaringType.FullName, _methodName);
 
             if (LogParameters)
             {
@@ -175,7 +181,7 @@ namespace LoggerAspect
         /// is being executed and which are its arguments.</param>
         public override void OnExit(MethodExecutionArgs args)
         {
-            var message = string.Format("Exiting method {0}.{1}", _className, _methodName);
+            var message = string.Format("Exiting method {0}.{1}", _declaringType.FullName, _methodName);
             if (LogParameters)
             {
                 var arguments = GetArguments(args);
@@ -185,27 +191,6 @@ namespace LoggerAspect
             {
                 message = string.Format("{0} and lasted ({1})", message, Stopwatch.Elapsed);
                 Stopwatch.Stop();
-            }
-            Logger.Debug(message);
-        }
-
-        /// <summary>
-        /// Method executed when a state machine resumes execution after an <c>yield return</c> or
-        /// <c>await</c> statement.
-        /// </summary>
-        /// <param name="args">Event arguments specifying which method
-        /// is being executed and which are its arguments.</param>
-        public override void OnResume(MethodExecutionArgs args)
-        {
-            var message = string.Format("Resuming method {0}.{1}", _className, _methodName);
-            if (LogExecutionTime)
-            {
-                Stopwatch.Start();
-            }
-            if (LogParameters)
-            {
-                var arguments = GetArguments(args);
-                message = string.Format("{1} with ({2})", FormatAguments(arguments));
             }
             Logger.Debug(message);
         }
@@ -219,7 +204,7 @@ namespace LoggerAspect
         /// is being executed and which are its arguments.</param>
         public override void OnSuccess(MethodExecutionArgs args)
         {
-            var message = string.Format("Successfully finished method {0}.{1}", _className, _methodName);
+            var message = string.Format("Successfully finished method {0}.{1}", _declaringType.FullName, _methodName);
             if (LogParameters)
             {
                 var arguments = GetArguments(args);
@@ -234,34 +219,9 @@ namespace LoggerAspect
         }
 
         /// <summary>
-        /// Method executed when a state machine yields, as the result of an <c>yield return</c> or
-        /// <c>await</c> statement.
+        /// Formats the aguments.
         /// </summary>
-        /// <param name="args">Event arguments specifying which method
-        /// is being executed and which are its arguments. In iterator methods, the <see cref="P:PostSharp.Aspects.MethodExecutionArgs.YieldValue" />
-        /// property gives access to the operand of the <c>yield return</c> statement.</param>
-        public override void OnYield(MethodExecutionArgs args)
-        {
-            var message = string.Format("Yielding result from method {0}.{1}", _className, _methodName);
-            if (LogParameters)
-            {
-                var arguments = GetArguments(args);
-                message = string.Format("{0} with ({1})", message, FormatAguments(arguments));
-            }
-            if (LogReturnValue)
-            {
-                var returnValue = FormatObject(args.ReturnValue);
-                message = string.Format("{0} returning {1}", message, returnValue.Equals("NULL") ? "VOID" : returnValue);
-            }
-            if (LogExecutionTime)
-            {
-                message = string.Format("{0} and lasted ({1})", message, Stopwatch.Elapsed);
-                Stopwatch.Stop();
-            }
-            Logger.Debug(message);
-        }
-
-
+        /// <param name="arguments">The arguments.</param>
         private static string FormatAguments(IDictionary<string, object> arguments)
         {
             var formatedArguments = new List<string>();
@@ -283,10 +243,14 @@ namespace LoggerAspect
                     formatedArguments.Add(string.Format("{0} = {{ {1} }}", argument.Key, formatedObject));
                 }
             }
-            var formatedArgumentString = string.Join(" , ", formatedArguments);
+            var formatedArgumentString = string.Join(" , ", formatedArguments.ToArray());
             return string.IsNullOrWhiteSpace(formatedArgumentString) ? "NULL" : formatedArgumentString;
         }
 
+        /// <summary>
+        /// Formats the object.
+        /// </summary>
+        /// <param name="argument">The argument.</param>
         private static string FormatObject(object argument)
         {
             if (argument == null)
@@ -309,6 +273,10 @@ namespace LoggerAspect
             return formatedObject;
         }
 
+        /// <summary>
+        /// Gets the arguments.
+        /// </summary>
+        /// <param name="args">The arguments.</param>
         private static IDictionary<string, object> GetArguments(MethodExecutionArgs args)
         {
             var arguments = new Dictionary<string, object>();
