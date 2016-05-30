@@ -1,0 +1,145 @@
+﻿using System;
+using System.Configuration;
+using System.IO;
+using System.Reflection;
+using System.Xml;
+using Aspects.Logging.Interfaces;
+
+namespace Aspects.Logging.Configuration
+{
+    /// <summary>
+    ///  Represents the configuration section for the logging aspect
+    /// </summary>
+    /// <remarks>
+    /// See also base object <seealso cref="System.Configuration.ConfigurationSection" />
+    /// </remarks>
+    /// <remarks>
+    /// http://www.codeproject.com/Articles/32490/Custom-Configuration-Sections-for-Lazy-Coders
+    /// </remarks>
+    public class LogAspectConfig : ConfigurationSection
+    {
+        private const string LogAspectSectionName = "LogAspectConfig";
+
+        private static LogAspectConfig _instance;
+        private static string _originalConfigPath;
+        private LogAspectConfig() { }
+
+        ///<summary>
+        ///Get this configuration set from the application's default config file
+        ///</summary>
+        public static LogAspectConfig Open()
+        {
+            Assembly assy = Assembly.GetEntryAssembly();
+            if (assy != null)
+                return Open(assy.Location);
+            return null;
+        }
+
+        /// <summary>
+		/// Get this configuration set from a specific config file
+        /// </summary>
+        /// <param name="path">The path.</param>
+        /// <returns></returns>
+        public static LogAspectConfig Open(string path)
+        {
+            if (_instance == null)
+            {
+                if (path.EndsWith(".config", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    _originalConfigPath = path.Remove(path.Length - 7);
+                }
+                else
+                {
+                    _originalConfigPath = path;
+                }
+
+                System.Configuration.Configuration config =
+                    ConfigurationManager.OpenExeConfiguration(_originalConfigPath);
+
+                if (config.Sections[LogAspectSectionName] == null)
+                {
+                    _instance = new LogAspectConfig();
+                    config.Sections.Add(LogAspectSectionName, _instance);
+                    config.Save(ConfigurationSaveMode.Modified);
+                }
+                else
+                {
+                    _instance = (LogAspectConfig)config.Sections[LogAspectSectionName];
+                }
+            }
+            return _instance;
+        }
+
+        public LogAspectConfig Copy()
+        {
+            LogAspectConfig copy = new LogAspectConfig();
+            string xml = SerializeSection(this, LogAspectSectionName, ConfigurationSaveMode.Full);
+            XmlReader reader = new XmlTextReader(new StringReader(xml));
+            copy.DeserializeSection(reader);
+            return copy;
+        }
+
+        ///<summary>
+        ///Save the current property values to the config file
+        ///</summary>
+        public void Save()
+        {
+            System.Configuration.Configuration config = ConfigurationManager.OpenExeConfiguration(_originalConfigPath);
+            LogAspectConfig section = Open(_originalConfigPath);
+
+            section.UseConsoleLogger = UseConsoleLogger;
+            section.Logger = Logger;
+            section.Tags = Tags;
+
+            config.Save(ConfigurationSaveMode.Full);
+        }
+
+        /// <summary>
+        /// Gets the default configuration without any changes made.
+        /// </summary>
+        public static LogAspectConfig Default
+        {
+            get { return new LogAspectConfig(); }
+        }
+
+        [ConfigurationProperty("useConsoleLogger", DefaultValue = false, IsRequired = false)]
+        public bool UseConsoleLogger
+        {
+            get { return (bool)this["useConsoleLogger"]; }
+            set { this["useConsoleLogger"] = value; }
+        }
+
+        [ConfigurationProperty("tags", DefaultValue = null, IsRequired = false, IsDefaultCollection = false)]
+        public TagCollection Tags
+        {
+            get { return (TagCollection)this["tags"]; }
+            set { this["tags"] = value; }
+        }
+
+        [ConfigurationProperty("logger", IsRequired = false, DefaultValue = null)]
+        public string Logger
+        {
+            get
+            {
+                string typeName = (string)this["logger"];
+                Type loggerType = Type.GetType(typeName);
+                if (loggerType != null && typeof(ILogger).IsAssignableFrom(loggerType))
+                    return typeName;
+                if (loggerType == null)
+                    return null;
+                throw new ConfigurationErrorsException("The provided logger type is not of type Aspects.Logging.Interfaces.ILogger");
+            }
+            set
+            {
+                if (!string.IsNullOrWhiteSpace(value))
+                {
+                    Type loggerType = Type.GetType(value);
+                    if (!typeof(ILogger).IsAssignableFrom(loggerType))
+                        throw new ConfigurationErrorsException(
+                            "The provided logger type is not of type Aspects.Logging.Interfaces.ILogger");
+                }
+                this["logger"] = value;
+            }
+        }
+    }
+}
