@@ -31,7 +31,9 @@ namespace Aspects.Logging
 
         private static readonly string FullTypeSignature =
             string.Format("{0}.{1}({2})", DeclaringTypeElement, MethodNameElement, ArgumentsElement);
-        private static readonly string DefaultOutputFormat = string.Join(SeparatorElement, DateTimeElement,ActionElement, FullTypeSignature, ReturnValueElement, ElapsedTimeElement);
+        private static readonly string DefaultOutputFormat = string.Join(SeparatorElement, DateTimeElement, ActionElement, FullTypeSignature, ReturnValueElement, ElapsedTimeElement);
+
+        private bool _shouldLog = true;
 
         /// The method name provided at compile time
         private string _methodName;
@@ -110,6 +112,11 @@ namespace Aspects.Logging
         public string OutputFomat { get; set; }
 
         /// <summary>
+        /// Gets or sets the tags.
+        /// </summary>
+        public string Tags { get; set; }
+
+        /// <summary>
         /// Method invoked at build time to initialize the instance fields of the current aspect. This method is invoked
         /// before any other build-time method.
         /// </summary>
@@ -159,6 +166,9 @@ namespace Aspects.Logging
         /// after the execution of <see cref="M:PostSharp.Aspects.IOnMethodBoundaryAspect.OnEntry(PostSharp.Aspects.MethodExecutionArgs)" />.</param>
         public override void OnEntry(MethodExecutionArgs args)
         {
+            if (!_shouldLog)
+                return;
+
             string message = FillInMessage(args, "Entered");
 
             if (LogExecutionTime)
@@ -171,12 +181,18 @@ namespace Aspects.Logging
 
         public override void OnSuccess(MethodExecutionArgs args)
         {
+            if (!_shouldLog)
+                return;
+
             string message = FillInMessage(args, "Success");
             Logger.Debug(message);
         }
 
         public override void OnException(MethodExecutionArgs args)
         {
+            if (!_shouldLog)
+                return;
+
             args.FlowBehavior = FlowBehavior.RethrowException;
             string message = FillInMessage(args, "Exception");
             Logger.Error(message, args.Exception);
@@ -184,6 +200,9 @@ namespace Aspects.Logging
 
         public override void OnExit(MethodExecutionArgs args)
         {
+            if (!_shouldLog)
+                return;
+
             string message = FillInMessage(args, "Exited");
 
             if (LogExecutionTime)
@@ -196,7 +215,39 @@ namespace Aspects.Logging
 
         public override void RuntimeInitialize(MethodBase method)
         {
-            base.RuntimeInitialize(method);
+            var config = LogAspectConfig.Open();
+            if (config != null)
+            {
+                var tags = config.Tags.OfType<TagElement>().ToList();
+                var includedTags = tags.Where(element => element.IncludeTag).Select(element => element.Name).ToList();
+                var excludedTags = tags.Where(element => element.ExcludeTag).Select(element => element.Name).ToList();
+
+                if (includedTags.Any(tag => CurrentMethodFullName.StartsWith(tag)))
+                {
+                    _shouldLog = true;
+                    return;
+                }
+
+                if (excludedTags.Any(tag => CurrentMethodFullName.StartsWith(tag)))
+                {
+                    _shouldLog = false;
+                    return;
+                }
+
+                if (!string.IsNullOrWhiteSpace(Tags))
+                {
+                    var currentTags = Tags.Split(new[] { ',', ';', ' ' }, StringSplitOptions.RemoveEmptyEntries).Select(tag => tag.Trim()).ToList();
+                    if (currentTags.Any(currentTag => includedTags.Any(includedTag => currentTag.Equals(includedTag, StringComparison.InvariantCultureIgnoreCase))))
+                    {
+                        _shouldLog = true;
+                        return;
+                    }
+                    if (currentTags.Any(currentTag => excludedTags.Any(excludedTag => currentTag.Equals(excludedTag, StringComparison.InvariantCultureIgnoreCase))))
+                    {
+                        _shouldLog = false;
+                    }
+                }
+            }
         }
 
         private static void InstantiateLogger()
@@ -213,7 +264,11 @@ namespace Aspects.Logging
                 }
                 else if (!string.IsNullOrWhiteSpace(config.Logger))
                 {
-                    _logger = (ILogger) Activator.CreateInstance(Type.GetType(config.Logger));
+                    Type type = Type.GetType(config.Logger);
+                    if (type != null)
+                        _logger = (ILogger)Activator.CreateInstance(type);
+                    else
+                        _logger = new NullLogger();
                 }
                 else
                 {
@@ -306,7 +361,7 @@ namespace Aspects.Logging
             {
                 IDictionary<string, object> arguments = GetArguments(args);
                 string formatAguments = FormatAguments(arguments);
-                string value = formatAguments.Equals("NULL",StringComparison.InvariantCultureIgnoreCase) ? string.Empty : formatAguments;
+                string value = formatAguments.Equals("NULL", StringComparison.InvariantCultureIgnoreCase) ? string.Empty : formatAguments;
                 message = message.Replace(ArgumentsElement, value);
             }
             else
@@ -334,6 +389,11 @@ namespace Aspects.Logging
             }
 
             return message;
+        }
+
+        private string CurrentMethodFullName
+        {
+            get { return string.Format("{0}.{1}", _declaringType.FullName, _methodName); }
         }
     }
 }
