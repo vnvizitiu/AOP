@@ -1,8 +1,8 @@
-using Aspects.Logging.Enums;
+using Aspects.Logging;
 
 namespace Aspects.Logging.Tests.Dummies
 {
-    [Log(Exclude = ExclusionFlags.Constructors)]
+    [Log(Excludes = Excludes.Constructors)]
     public class PersonExcludeConstructors
     {
         static PersonExcludeConstructors()

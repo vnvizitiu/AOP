@@ -2,13 +2,12 @@
 using System.Collections.Generic;
 using System.Configuration;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
-using Aspects.Logging.Concrete;
 using Aspects.Logging.Configuration;
-using Aspects.Logging.Enums;
-using Aspects.Logging.Extensions;
-using Aspects.Logging.Interfaces;
+using Aspects.Logging;
+using Aspects.Logging.Loggers;
 using PostSharp.Aspects;
 
 namespace Aspects.Logging
@@ -18,7 +17,8 @@ namespace Aspects.Logging
     /// </summary>
     /// <seealso cref="PostSharp.Aspects.OnMethodBoundaryAspect" />
     [Serializable]
-    public class LogAttribute : OnMethodBoundaryAspect
+    [AttributeUsage(AttributeTargets.Assembly | AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Constructor | AttributeTargets.Method | AttributeTargets.Property | AttributeTargets.Event | AttributeTargets.Interface, AllowMultiple = true, Inherited = false)]
+    public sealed class LogAttribute : OnMethodBoundaryAspect
     {
         private const string SeparatorElement = ";";
         private const string DateTimeElement = "{datetime}";
@@ -30,7 +30,7 @@ namespace Aspects.Logging
         private const string ElapsedTimeElement = "{ElapsedTime}";
 
         private static readonly string FullTypeSignature =
-            string.Format("{0}.{1}({2})", DeclaringTypeElement, MethodNameElement, ArgumentsElement);
+            string.Format(CultureInfo.InvariantCulture, "{0}.{1}({2})", DeclaringTypeElement, MethodNameElement, ArgumentsElement);
         private static readonly string DefaultOutputFormat = string.Join(SeparatorElement, DateTimeElement, ActionElement, FullTypeSignature, ReturnValueElement, ElapsedTimeElement);
 
         private bool _shouldLog = true;
@@ -51,7 +51,7 @@ namespace Aspects.Logging
         /// <summary>
         /// Gets or sets the exclude flags.
         /// </summary>
-        public ExclusionFlags Exclude { get; set; }
+        public Excludes Excludes { get; set; }
 
 
         /// <summary>
@@ -59,7 +59,7 @@ namespace Aspects.Logging
         /// </summary>
         public static ILogger Logger
         {
-            private get
+            get
             {
                 if (_logger == null)
                 {
@@ -109,7 +109,7 @@ namespace Aspects.Logging
         /// <summary>
         /// Gets or sets the output fomat.
         /// </summary>
-        public string OutputFomat { get; set; }
+        public string Output { get; set; }
 
         /// <summary>
         /// Gets or sets the tags.
@@ -124,10 +124,13 @@ namespace Aspects.Logging
         /// <param name="aspectInfo">Reserved for future usage.</param>
         public override void CompileTimeInitialize(MethodBase method, AspectInfo aspectInfo)
         {
-            _methodName = method.Name;
-            if (method.DeclaringType != null)
+            if (method != null)
             {
-                _declaringType = method.DeclaringType;
+                _methodName = method.Name;
+                if (method.DeclaringType != null)
+                {
+                    _declaringType = method.DeclaringType;
+                }
             }
         }
 
@@ -141,19 +144,21 @@ namespace Aspects.Logging
         /// </returns>
         public override bool CompileTimeValidate(MethodBase method)
         {
+            if (method == null) throw new ArgumentNullException("method");
+
             if (method.Name.Contains("ToString"))
                 return false;
             if (typeof(ILogger).IsAssignableFrom(_declaringType))
                 return false;
             if (method.DeclaringType == GetType())
                 return false;
-            if ((Exclude & ExclusionFlags.StaticConstructor) == ExclusionFlags.StaticConstructor && method.Name.StartsWith(".cctor"))
+            if ((Excludes & Excludes.StaticConstructor) == Excludes.StaticConstructor && method.Name.StartsWith(".cctor", StringComparison.OrdinalIgnoreCase))
                 return false;
-            if ((Exclude & ExclusionFlags.InstanceConstructors) == ExclusionFlags.InstanceConstructors && method.Name.StartsWith(".ctor"))
+            if ((Excludes & Excludes.InstanceConstructors) == Excludes.InstanceConstructors && method.Name.StartsWith(".ctor", StringComparison.OrdinalIgnoreCase))
                 return false;
-            if ((Exclude & ExclusionFlags.PropertyGetters) == ExclusionFlags.PropertyGetters && method.Name.StartsWith("get_"))
+            if ((Excludes & Excludes.PropertyGetters) == Excludes.PropertyGetters && method.Name.StartsWith("get_", StringComparison.OrdinalIgnoreCase))
                 return false;
-            if ((Exclude & ExclusionFlags.PropertySetters) == ExclusionFlags.PropertySetters && method.Name.StartsWith("set_"))
+            if ((Excludes & Excludes.PropertySetters) == Excludes.PropertySetters && method.Name.StartsWith("set_", StringComparison.OrdinalIgnoreCase))
                 return false;
             return true;
         }
@@ -190,6 +195,8 @@ namespace Aspects.Logging
 
         public override void OnException(MethodExecutionArgs args)
         {
+            if (args == null) throw new ArgumentNullException("args");
+
             if (!_shouldLog)
                 return;
 
@@ -222,13 +229,13 @@ namespace Aspects.Logging
                 var includedTags = tags.Where(element => element.IncludeTag).Select(element => element.Name).ToList();
                 var excludedTags = tags.Where(element => element.ExcludeTag).Select(element => element.Name).ToList();
 
-                if (includedTags.Any(tag => CurrentMethodFullName.StartsWith(tag)))
+                if (includedTags.Any(tag => CurrentMethodFullName.StartsWith(tag, StringComparison.OrdinalIgnoreCase)))
                 {
                     _shouldLog = true;
                     return;
                 }
 
-                if (excludedTags.Any(tag => CurrentMethodFullName.StartsWith(tag)))
+                if (excludedTags.Any(tag => CurrentMethodFullName.StartsWith(tag, StringComparison.OrdinalIgnoreCase)))
                 {
                     _shouldLog = false;
                     return;
@@ -237,12 +244,12 @@ namespace Aspects.Logging
                 if (!string.IsNullOrWhiteSpace(Tags))
                 {
                     var currentTags = Tags.Split(new[] { ',', ';', ' ' }, StringSplitOptions.RemoveEmptyEntries).Select(tag => tag.Trim()).ToList();
-                    if (currentTags.Any(currentTag => includedTags.Any(includedTag => currentTag.Equals(includedTag, StringComparison.InvariantCultureIgnoreCase))))
+                    if (currentTags.Any(currentTag => includedTags.Any(includedTag => currentTag.Equals(includedTag, StringComparison.OrdinalIgnoreCase))))
                     {
                         _shouldLog = true;
                         return;
                     }
-                    if (currentTags.Any(currentTag => excludedTags.Any(excludedTag => currentTag.Equals(excludedTag, StringComparison.InvariantCultureIgnoreCase))))
+                    if (currentTags.Any(currentTag => excludedTags.Any(excludedTag => currentTag.Equals(excludedTag, StringComparison.OrdinalIgnoreCase))))
                     {
                         _shouldLog = false;
                     }
@@ -298,12 +305,12 @@ namespace Aspects.Logging
                 var type = argument.Value.GetType();
                 if (type.IsValueType)
                 {
-                    formatedArguments.Add(string.Format("{0} = {1}", argument.Key, argument.Value));
+                    formatedArguments.Add(string.Format(CultureInfo.InvariantCulture, "{0} = {1}", argument.Key, argument.Value));
                 }
                 else if (type.IsClass)
                 {
                     var formatedObject = FormatObject(argument.Value);
-                    formatedArguments.Add(string.Format("{0} = {{ {1} }}", argument.Key, formatedObject));
+                    formatedArguments.Add(string.Format(CultureInfo.InvariantCulture, "{0} = {{ {1} }}", argument.Key, formatedObject));
                 }
             }
             var formatedArgumentString = string.Join(" , ", formatedArguments.ToArray());
@@ -351,8 +358,8 @@ namespace Aspects.Logging
 
         private string FillInMessage(MethodExecutionArgs args, string actionName)
         {
-            string message = string.IsNullOrWhiteSpace(OutputFomat) ? DefaultOutputFormat : OutputFomat;
-            message = message.Replace(DateTimeElement, DateTime.Now.ToString("u"));
+            string message = string.IsNullOrWhiteSpace(Output) ? DefaultOutputFormat : Output;
+            message = message.Replace(DateTimeElement, DateTime.Now.ToString("u", CultureInfo.InvariantCulture));
             message = message.Replace(ActionElement, actionName);
             message = message.Replace(DeclaringTypeElement, _declaringType.FullName);
             message = message.Replace(MethodNameElement, _methodName);
@@ -361,7 +368,7 @@ namespace Aspects.Logging
             {
                 IDictionary<string, object> arguments = GetArguments(args);
                 string formatAguments = FormatAguments(arguments);
-                string value = formatAguments.Equals("NULL", StringComparison.InvariantCultureIgnoreCase) ? string.Empty : formatAguments;
+                string value = formatAguments.Equals("NULL", StringComparison.OrdinalIgnoreCase) ? string.Empty : formatAguments;
                 message = message.Replace(ArgumentsElement, value);
             }
             else
@@ -393,7 +400,7 @@ namespace Aspects.Logging
 
         private string CurrentMethodFullName
         {
-            get { return string.Format("{0}.{1}", _declaringType.FullName, _methodName); }
+            get { return string.Format(CultureInfo.InvariantCulture, "{0}.{1}", _declaringType.FullName, _methodName); }
         }
     }
 }

@@ -1,9 +1,10 @@
 ﻿using System;
+using System.Globalization;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace Aspects.Logging.Extensions
+namespace Aspects.Logging
 {
     /// <summary>
     ///  An extension method meant to present an object states using a string format
@@ -16,10 +17,14 @@ namespace Aspects.Logging.Extensions
     /// </remarks>
     public static class FormattableObjectExtension
     {
-        public static string ToString(this object anObject, string format, IFormatProvider formatProvider = null)
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
+        public static string ToString(this object instance, string format, IFormatProvider formatProvider = null)
         {
+            if (instance == null) throw new ArgumentNullException("instance");
+            if (format == null) throw new ArgumentNullException("format");
+
             StringBuilder sb = new StringBuilder();
-            Type type = anObject.GetType();
+            Type type = instance.GetType();
             Regex regex = new Regex(@"({)([^}]+)(})", RegexOptions.IgnoreCase | RegexOptions.Compiled);
             MatchCollection matches = regex.Matches(format);
             int startIndex = 0;
@@ -52,7 +57,7 @@ namespace Aspects.Logging.Extensions
                 if (retrievedPropertyInfo != null)
                 {
                     retrievedType = retrievedPropertyInfo.PropertyType;
-                    retrievedObject = retrievedPropertyInfo.GetValue(anObject, null);
+                    retrievedObject = retrievedPropertyInfo.GetValue(instance, null);
                 }
                 else // try fields
                 {
@@ -60,7 +65,7 @@ namespace Aspects.Logging.Extensions
                     if (retrievedField != null)
                     {
                         retrievedType = retrievedField.FieldType;
-                        retrievedObject = retrievedField.GetValue(anObject);
+                        retrievedObject = retrievedField.GetValue(instance);
                     }
                 }
 
@@ -73,7 +78,7 @@ namespace Aspects.Logging.Extensions
                             retrievedType.InvokeMember("ToString",
                             BindingFlags.Public | BindingFlags.NonPublic | 
                             BindingFlags.Instance | BindingFlags.InvokeMethod |
-                            BindingFlags.IgnoreCase, null, retrievedObject, null) as string;
+                            BindingFlags.IgnoreCase, null, retrievedObject, null, CultureInfo.InvariantCulture) as string;
                     }
                     else // format info
                     {
@@ -81,7 +86,7 @@ namespace Aspects.Logging.Extensions
                             BindingFlags.Public | BindingFlags.NonPublic |
                             BindingFlags.Instance | BindingFlags.InvokeMethod |
                             BindingFlags.IgnoreCase, null, retrievedObject,
-                            new object[] { toFormat, formatProvider }) as string;
+                            new object[] { toFormat, formatProvider }, CultureInfo.InvariantCulture) as string;
                     }
                     sb.Append(result);
                 }

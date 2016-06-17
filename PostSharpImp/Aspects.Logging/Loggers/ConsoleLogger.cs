@@ -1,14 +1,25 @@
 ﻿using System;
-using Aspects.Logging.Interfaces;
 
-namespace Aspects.Logging.Concrete
+namespace Aspects.Logging.Loggers
 {
     /// <summary>
     ///  Represents a logger that logs to the console using color output
     /// </summary>
-    /// <seealso cref="Aspects.Logging.Interfaces.ILogger" />
+    /// <seealso cref="ILogger" />
     public sealed class ConsoleLogger : ILogger
     {
+        /// <summary>
+        /// Logs the message with trace level.
+        /// </summary>
+        /// <param name="message">The message.</param>
+        public void Trace(string message)
+        {
+            var color = Console.ForegroundColor;
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine(message);
+            Console.ForegroundColor = color;
+        }
+
         /// <summary>
         /// Logs the message with debug level.
         /// </summary>
@@ -17,6 +28,27 @@ namespace Aspects.Logging.Concrete
         {
             var color = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine(message);
+            Console.ForegroundColor = color;
+        }
+
+        /// <summary>
+        /// Logs the message with debug level.
+        /// </summary>
+        /// <param name="message">The message.</param>
+        public void Info(string message)
+        {
+            Console.WriteLine(message);
+        }
+
+        /// <summary>
+        /// Logs the message with warn level.
+        /// </summary>
+        /// <param name="message">The message.</param>
+        public void Warn(string message)
+        {
+            var color = Console.ForegroundColor;
+            Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine(message);
             Console.ForegroundColor = color;
         }
@@ -46,39 +78,6 @@ namespace Aspects.Logging.Concrete
             Console.ForegroundColor = ConsoleColor.Red;
             Console.WriteLine(message);
             Console.WriteLine(exception);
-            Console.ForegroundColor = color;
-        }
-
-        /// <summary>
-        /// Logs the message with debug level.
-        /// </summary>
-        /// <param name="message">The message.</param>
-        public void Info(string message)
-        {
-            Console.WriteLine(message);
-        }
-
-        /// <summary>
-        /// Logs the message with trace level.
-        /// </summary>
-        /// <param name="message">The message.</param>
-        public void Trace(string message)
-        {
-            var color = Console.ForegroundColor;
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine(message);
-            Console.ForegroundColor = color;
-        }
-
-        /// <summary>
-        /// Logs the message with warn level.
-        /// </summary>
-        /// <param name="message">The message.</param>
-        public void Warn(string message)
-        {
-            var color = Console.ForegroundColor;
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine(message);
             Console.ForegroundColor = color;
         }
     }

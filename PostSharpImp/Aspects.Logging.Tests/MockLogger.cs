@@ -1,5 +1,5 @@
 ﻿using System;
-using Aspects.Logging.Interfaces;
+using Aspects.Logging.Loggers;
 
 namespace Aspects.Logging.Tests
 {

@@ -1,9 +1,9 @@
 ﻿using System;
 
-namespace Aspects.Logging.Enums
+namespace Aspects.Logging
 {
     [Flags]
-    public enum ExclusionFlags
+    public enum Excludes
     {
         None = 0,
         StaticConstructor = 1 << 0,

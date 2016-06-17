@@ -3,7 +3,7 @@ using System.Configuration;
 using System.IO;
 using System.Reflection;
 using System.Xml;
-using Aspects.Logging.Interfaces;
+using Aspects.Logging.Loggers;
 
 namespace Aspects.Logging.Configuration
 {
@@ -39,12 +39,13 @@ namespace Aspects.Logging.Configuration
 		/// Get this configuration set from a specific config file
         /// </summary>
         /// <param name="path">The path.</param>
-        /// <returns></returns>
         public static LogAspectConfig Open(string path)
         {
+            if (path == null) throw new ArgumentNullException("path");
+
             if (_instance == null)
             {
-                if (path.EndsWith(".config", StringComparison.InvariantCultureIgnoreCase))
+                if (path.EndsWith(".config", StringComparison.OrdinalIgnoreCase))
                 {
                     _originalConfigPath = path.Remove(path.Length - 7);
                 }
@@ -74,9 +75,13 @@ namespace Aspects.Logging.Configuration
         {
             LogAspectConfig copy = new LogAspectConfig();
             string xml = SerializeSection(this, LogAspectSectionName, ConfigurationSaveMode.Full);
-            XmlReader reader = new XmlTextReader(new StringReader(xml));
-            copy.DeserializeSection(reader);
-            return copy;
+            using (StringReader stringReader = new StringReader(xml))
+            {
+                XmlReader reader = new XmlTextReader(stringReader);
+                copy.DeserializeSection(reader);
+                return copy;
+
+            }
         }
 
         ///<summary>
@@ -89,7 +94,6 @@ namespace Aspects.Logging.Configuration
 
             section.UseConsoleLogger = UseConsoleLogger;
             section.Logger = Logger;
-            section.Tags = Tags;
 
             config.Save(ConfigurationSaveMode.Full);
         }
@@ -113,9 +117,9 @@ namespace Aspects.Logging.Configuration
         public TagCollection Tags
         {
             get { return (TagCollection)this["tags"]; }
-            set { this["tags"] = value; }
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1065:DoNotRaiseExceptionsInUnexpectedLocations")]
         [ConfigurationProperty("logger", IsRequired = false, DefaultValue = null)]
         public string Logger
         {
@@ -127,7 +131,7 @@ namespace Aspects.Logging.Configuration
                     return typeName;
                 if (loggerType == null)
                     return null;
-                throw new ConfigurationErrorsException("The provided logger type is not of type Aspects.Logging.Interfaces.ILogger");
+                throw new ConfigurationErrorsException("The provided logger type is not of type Aspects.Logging.Loggers.ILogger");
             }
             set
             {
@@ -136,7 +140,7 @@ namespace Aspects.Logging.Configuration
                     Type loggerType = Type.GetType(value);
                     if (!typeof(ILogger).IsAssignableFrom(loggerType))
                         throw new ConfigurationErrorsException(
-                            "The provided logger type is not of type Aspects.Logging.Interfaces.ILogger");
+                            "The provided logger type is not of type Aspects.Logging.Loggers.ILogger");
                 }
                 this["logger"] = value;
             }

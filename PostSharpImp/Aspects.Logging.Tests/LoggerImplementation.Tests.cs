@@ -1,6 +1,6 @@
 ﻿using System;
+using Aspects.Logging.Loggers;
 using NUnit.Framework;
-using Aspects.Logging.Interfaces;
 using FluentAssertions;
 
 namespace Aspects.Logging.Tests

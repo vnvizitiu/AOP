@@ -1,6 +1,4 @@
-﻿using Aspects.Logging.Concrete;
-using Aspects.Logging.Extensions;
-using Aspects.Logging.Tests.Dummies;
+﻿using Aspects.Logging.Tests.Dummies;
 using FluentAssertions;
 using NUnit.Framework;
 
