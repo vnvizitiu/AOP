@@ -7,7 +7,7 @@ namespace Aspects.Logging.Nlog
     /// <summary>
     /// A logger that implements Nlog
     /// </summary>
-    public class NLogLogger : Loggers.ILogger
+    public class NLogLogger : ILogger
     {
         private readonly Logger _logger;
 
