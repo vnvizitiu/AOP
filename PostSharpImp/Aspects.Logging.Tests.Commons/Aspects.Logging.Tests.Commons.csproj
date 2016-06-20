@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{8EDF4429-251A-416D-BB68-93F227191BCF}</ProjectGuid>
+    <ProjectGuid>{2A974F33-C02F-42CF-A5CF-460AD3791ACD}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Aspects.Logging.Tests</RootNamespace>
-    <AssemblyName>Aspects.Logging.Tests</AssemblyName>
+    <RootNamespace>Aspects.Logging.Tests.Commons</RootNamespace>
+    <AssemblyName>Aspects.Logging.Tests.Commons</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <DontImportPostSharp>True</DontImportPostSharp>
@@ -31,54 +31,40 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="FluentAssertions, Version=4.9.0.0, Culture=neutral, PublicKeyToken=33f2691a05b67b6a, processorArchitecture=MSIL">
-      <HintPath>..\packages\FluentAssertions.4.9.0\lib\net45\FluentAssertions.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="FluentAssertions.Core, Version=4.9.0.0, Culture=neutral, PublicKeyToken=33f2691a05b67b6a, processorArchitecture=MSIL">
-      <HintPath>..\packages\FluentAssertions.4.9.0\lib\net45\FluentAssertions.Core.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="nunit.framework, Version=3.2.1.0, Culture=neutral, PublicKeyToken=2638cd05610744eb, processorArchitecture=MSIL">
-      <HintPath>..\packages\NUnit.3.2.1\lib\net45\nunit.framework.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="PostSharp, Version=4.2.27.0, Culture=neutral, PublicKeyToken=b13fd38b8f9c99d7, processorArchitecture=MSIL">
       <HintPath>..\packages\PostSharp.4.2.27\lib\net35-client\PostSharp.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
-    <Reference Include="System.Configuration" />
-    <Reference Include="System.Xml" />
+    <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ExcludeTests.cs" />
-    <Compile Include="FormattableObjectExtensionTests.cs" />
-    <Compile Include="LogAspectSectionTests.cs" />
-    <Compile Include="LoggingAspectBaseFunctionalityTests.cs" />
-    <Compile Include="LoggingAspectFullLoggingTests.cs" />
-    <Compile Include="LoggingAspectGenericsTests.cs" />
-    <Compile Include="MockLogger.cs" />
-    <Compile Include="LoggerImplementation.Tests.cs" />
+    <Compile Include="Dummies\FullTestClass.cs" />
+    <Compile Include="Dummies\Generic.cs" />
+    <Compile Include="Dummies\Person.cs" />
+    <Compile Include="Dummies\PersonExcludeConstructors.cs" />
+    <Compile Include="Dummies\PersonExcludeInstanceConstructor.cs" />
+    <Compile Include="Dummies\PersonExcludeProperty.cs" />
+    <Compile Include="Dummies\PersonExcludePropertyConstructors.cs" />
+    <Compile Include="Dummies\PersonExcludePropertyGetters.cs" />
+    <Compile Include="Dummies\PersonExcludePropertySetters.cs" />
+    <Compile Include="Dummies\PersonExcludeStaticConstructor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Aspects.Logging.Tests.Commons\Aspects.Logging.Tests.Commons.csproj">
-      <Project>{2a974f33-c02f-42cf-a5cf-460ad3791acd}</Project>
-      <Name>Aspects.Logging.Tests.Commons</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Aspects.Logging\Aspects.Logging.csproj">
       <Project>{52b2e7e2-0e8b-498c-8c62-70279996f268}</Project>
       <Name>Aspects.Logging</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\PostSharp.4.2.27\tools\PostSharp.targets" Condition="Exists('..\packages\PostSharp.4.2.27\tools\PostSharp.targets')" />

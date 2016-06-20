@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{8EDF4429-251A-416D-BB68-93F227191BCF}</ProjectGuid>
+    <ProjectGuid>{FD6EE086-B7F3-4FA4-8810-1C36AD2B576B}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Aspects.Logging.Tests</RootNamespace>
-    <AssemblyName>Aspects.Logging.Tests</AssemblyName>
+    <RootNamespace>Aspects.Logging.Nlog.Tests</RootNamespace>
+    <AssemblyName>Aspects.Logging.Nlog.Tests</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <DontImportPostSharp>True</DontImportPostSharp>
@@ -39,6 +39,10 @@
       <HintPath>..\packages\FluentAssertions.4.9.0\lib\net45\FluentAssertions.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
+      <HintPath>..\packages\NLog.4.3.5\lib\net45\NLog.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="nunit.framework, Version=3.2.1.0, Culture=neutral, PublicKeyToken=2638cd05610744eb, processorArchitecture=MSIL">
       <HintPath>..\packages\NUnit.3.2.1\lib\net45\nunit.framework.dll</HintPath>
       <Private>True</Private>
@@ -48,26 +52,18 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
-    <Reference Include="System.Configuration" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ExcludeTests.cs" />
-    <Compile Include="FormattableObjectExtensionTests.cs" />
-    <Compile Include="LogAspectSectionTests.cs" />
-    <Compile Include="LoggingAspectBaseFunctionalityTests.cs" />
-    <Compile Include="LoggingAspectFullLoggingTests.cs" />
-    <Compile Include="LoggingAspectGenericsTests.cs" />
-    <Compile Include="MockLogger.cs" />
-    <Compile Include="LoggerImplementation.Tests.cs" />
+    <Compile Include="NlogsLoggingAspectTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
+    <ProjectReference Include="..\Aspects.Logging.Nlog\Aspects.Logging.Nlog.csproj">
+      <Project>{89c3bec9-c04f-40b1-b32c-f01bb49b2ed6}</Project>
+      <Name>Aspects.Logging.Nlog</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Aspects.Logging.Tests.Commons\Aspects.Logging.Tests.Commons.csproj">
       <Project>{2a974f33-c02f-42cf-a5cf-460ad3791acd}</Project>
       <Name>Aspects.Logging.Tests.Commons</Name>
@@ -78,7 +74,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\PostSharp.4.2.27\tools\PostSharp.targets" Condition="Exists('..\packages\PostSharp.4.2.27\tools\PostSharp.targets')" />
