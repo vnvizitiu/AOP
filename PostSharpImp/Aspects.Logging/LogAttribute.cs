@@ -1,13 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Configuration;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using Aspects.Logging.Configuration;
-using Aspects.Logging;
+using Aspects.Logging.Helpers;
 using Aspects.Logging.Loggers;
+using Aspects.Logging.Models;
 using PostSharp.Aspects;
 
 namespace Aspects.Logging
@@ -20,19 +20,6 @@ namespace Aspects.Logging
     [AttributeUsage(AttributeTargets.Assembly | AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Constructor | AttributeTargets.Method | AttributeTargets.Property | AttributeTargets.Event | AttributeTargets.Interface, AllowMultiple = true, Inherited = false)]
     public sealed class LogAttribute : OnMethodBoundaryAspect
     {
-        private const string SeparatorElement = ";";
-        private const string DateTimeElement = "{datetime}";
-        private const string ActionElement = "{action}";
-        private const string DeclaringTypeElement = "{declaringType}";
-        private const string MethodNameElement = "{MethodName}";
-        private const string ArgumentsElement = "{Arguments}";
-        private const string ReturnValueElement = "{ReturnObject}";
-        private const string ElapsedTimeElement = "{ElapsedTime}";
-
-        private static readonly string FullTypeSignature =
-            string.Format(CultureInfo.InvariantCulture, "{0}.{1}({2})", DeclaringTypeElement, MethodNameElement, ArgumentsElement);
-        private static readonly string DefaultOutputFormat = string.Join(SeparatorElement, DateTimeElement, ActionElement, FullTypeSignature, ReturnValueElement, ElapsedTimeElement);
-
         private bool _shouldLog = true;
 
         /// The method name provided at compile time
@@ -47,6 +34,8 @@ namespace Aspects.Logging
         // The stopwatch instance used for measuring execution time
         [NonSerialized]
         private Stopwatch _stopwatch;
+
+        private IMessageFormatter _messageFormatter;
 
         /// <summary>
         /// Gets or sets the exclude flags.
@@ -68,18 +57,6 @@ namespace Aspects.Logging
                 return _logger;
             }
             set { _logger = value; }
-        }
-
-        private Stopwatch Stopwatch
-        {
-            get
-            {
-                if (_stopwatch == null)
-                {
-                    _stopwatch = new Stopwatch();
-                }
-                return _stopwatch;
-            }
         }
 
         /// <summary>
@@ -146,21 +123,7 @@ namespace Aspects.Logging
         {
             if (method == null) throw new ArgumentNullException("method");
 
-            if (method.Name.Contains("ToString"))
-                return false;
-            if (typeof(ILogger).IsAssignableFrom(_declaringType))
-                return false;
-            if (method.DeclaringType == GetType())
-                return false;
-            if ((Excludes & Excludes.StaticConstructor) == Excludes.StaticConstructor && method.Name.StartsWith(".cctor", StringComparison.OrdinalIgnoreCase))
-                return false;
-            if ((Excludes & Excludes.InstanceConstructors) == Excludes.InstanceConstructors && method.Name.StartsWith(".ctor", StringComparison.OrdinalIgnoreCase))
-                return false;
-            if ((Excludes & Excludes.PropertyGetters) == Excludes.PropertyGetters && method.Name.StartsWith("get_", StringComparison.OrdinalIgnoreCase))
-                return false;
-            if ((Excludes & Excludes.PropertySetters) == Excludes.PropertySetters && method.Name.StartsWith("set_", StringComparison.OrdinalIgnoreCase))
-                return false;
-            return true;
+            return CheckIfMethodIsValid(method);
         }
 
         /// <summary>
@@ -171,10 +134,14 @@ namespace Aspects.Logging
         /// after the execution of <see cref="M:PostSharp.Aspects.IOnMethodBoundaryAspect.OnEntry(PostSharp.Aspects.MethodExecutionArgs)" />.</param>
         public override void OnEntry(MethodExecutionArgs args)
         {
+            if (args == null) throw new ArgumentNullException("args");
+
             if (!_shouldLog)
                 return;
 
-            string message = FillInMessage(args, "Entered");
+            LoggingInfo info = GetLoggingInfo();
+
+            string message = MessageFormatter.FormatMessage(Output, args, "Entered", info);
 
             if (LogExecutionTime)
             {
@@ -186,10 +153,15 @@ namespace Aspects.Logging
 
         public override void OnSuccess(MethodExecutionArgs args)
         {
+            if (args == null) throw new ArgumentNullException("args");
+
             if (!_shouldLog)
                 return;
 
-            string message = FillInMessage(args, "Success");
+            LoggingInfo info = GetLoggingInfo();
+
+            string message = MessageFormatter.FormatMessage(Output, args, "Success", info);
+
             Logger.Debug(message);
         }
 
@@ -201,16 +173,24 @@ namespace Aspects.Logging
                 return;
 
             args.FlowBehavior = FlowBehavior.RethrowException;
-            string message = FillInMessage(args, "Exception");
+
+            LoggingInfo info = GetLoggingInfo();
+
+            string message = MessageFormatter.FormatMessage(Output, args, "Exception", info);
+
             Logger.Error(message, args.Exception);
         }
 
         public override void OnExit(MethodExecutionArgs args)
         {
+            if (args == null) throw new ArgumentNullException("args");
+
             if (!_shouldLog)
                 return;
 
-            string message = FillInMessage(args, "Exited");
+            LoggingInfo info = GetLoggingInfo();
+
+            string message = MessageFormatter.FormatMessage(Output, args, "Exited", info);
 
             if (LogExecutionTime)
             {
@@ -288,119 +268,71 @@ namespace Aspects.Logging
             }
         }
 
-        /// <summary>
-        /// Formats the aguments.
-        /// </summary>
-        /// <param name="arguments">The arguments.</param>
-        private static string FormatAguments(IDictionary<string, object> arguments)
-        {
-            var formatedArguments = new List<string>();
-            foreach (var argument in arguments)
-            {
-                if (argument.Value == null)
-                {
-                    formatedArguments.Add("NULL");
-                    continue;
-                }
-                var type = argument.Value.GetType();
-                if (type.IsValueType)
-                {
-                    formatedArguments.Add(string.Format(CultureInfo.InvariantCulture, "{0} = {1}", argument.Key, argument.Value));
-                }
-                else if (type.IsClass)
-                {
-                    var formatedObject = FormatObject(argument.Value);
-                    formatedArguments.Add(string.Format(CultureInfo.InvariantCulture, "{0} = {{ {1} }}", argument.Key, formatedObject));
-                }
-            }
-            var formatedArgumentString = string.Join(" , ", formatedArguments.ToArray());
-            return string.IsNullOrWhiteSpace(formatedArgumentString) ? "NULL" : formatedArgumentString;
-        }
-
-        /// <summary>
-        /// Formats the object.
-        /// </summary>
-        /// <param name="argument">The argument.</param>
-        private static string FormatObject(object argument)
-        {
-            if (argument == null)
-                return "NULL";
-
-            string formatedObject;
-            var arrDda = GetCustomAttributes(argument.GetType(), typeof(DebuggerDisplayAttribute)).OfType<DebuggerDisplayAttribute>().ToList();
-            if (arrDda.Count() == 1)
-            {
-                var dda = arrDda.First();
-                var val = dda.Value;
-                formatedObject = argument.ToString(val);
-            }
-            else
-            {
-                formatedObject = argument.ToString();
-            }
-            return formatedObject;
-        }
-
-        /// <summary>
-        /// Gets the arguments.
-        /// </summary>
-        /// <param name="args">The arguments.</param>
-        private static IDictionary<string, object> GetArguments(MethodExecutionArgs args)
-        {
-            var arguments = new Dictionary<string, object>();
-            var parameters = args.Method.GetParameters();
-            for (var i = 0; i < args.Arguments.Count; i++)
-            {
-                arguments.Add(parameters[i].Name, args.Arguments[i]);
-            }
-            return arguments;
-        }
-
-        private string FillInMessage(MethodExecutionArgs args, string actionName)
-        {
-            string message = string.IsNullOrWhiteSpace(Output) ? DefaultOutputFormat : Output;
-            message = message.Replace(DateTimeElement, DateTime.Now.ToString("u", CultureInfo.InvariantCulture));
-            message = message.Replace(ActionElement, actionName);
-            message = message.Replace(DeclaringTypeElement, _declaringType.FullName);
-            message = message.Replace(MethodNameElement, _methodName);
-
-            if (LogParameters)
-            {
-                IDictionary<string, object> arguments = GetArguments(args);
-                string formatAguments = FormatAguments(arguments);
-                string value = formatAguments.Equals("NULL", StringComparison.OrdinalIgnoreCase) ? string.Empty : formatAguments;
-                message = message.Replace(ArgumentsElement, value);
-            }
-            else
-            {
-                message = message.Replace(ArgumentsElement, string.Empty);
-            }
-
-            if (LogReturnValue)
-            {
-                var returnValue = FormatObject(args.ReturnValue);
-                message = message.Replace(ReturnValueElement, returnValue);
-            }
-            else
-            {
-                message = message.Replace(ReturnValueElement, string.Empty);
-            }
-
-            if (LogExecutionTime)
-            {
-                message = message.Replace(ElapsedTimeElement, Stopwatch.Elapsed.ToString());
-            }
-            else
-            {
-                message = message.Replace(ElapsedTimeElement, string.Empty);
-            }
-
-            return message;
-        }
-
         private string CurrentMethodFullName
         {
             get { return string.Format(CultureInfo.InvariantCulture, "{0}.{1}", _declaringType.FullName, _methodName); }
+        }
+
+        private bool CheckIfMethodIsValid(MethodBase method)
+        {
+            if (method.Name.Contains("ToString"))
+                return false;
+            if (typeof(ILogger).IsAssignableFrom(_declaringType))
+                return false;
+            if (method.DeclaringType == GetType())
+                return false;
+            if ((Excludes & Excludes.StaticConstructor) == Excludes.StaticConstructor && method.Name.StartsWith(".cctor", StringComparison.OrdinalIgnoreCase))
+                return false;
+            if ((Excludes & Excludes.InstanceConstructors) == Excludes.InstanceConstructors && method.Name.StartsWith(".ctor", StringComparison.OrdinalIgnoreCase))
+                return false;
+            if ((Excludes & Excludes.PropertyGetters) == Excludes.PropertyGetters && method.Name.StartsWith("get_", StringComparison.OrdinalIgnoreCase))
+                return false;
+            if ((Excludes & Excludes.PropertySetters) == Excludes.PropertySetters && method.Name.StartsWith("set_", StringComparison.OrdinalIgnoreCase))
+                return false;
+            return true;
+        }
+
+        private Stopwatch Stopwatch
+        {
+            get
+            {
+                if (_stopwatch == null)
+                {
+                    _stopwatch = new Stopwatch();
+                }
+                return _stopwatch;
+            }
+        }
+
+        private IMessageFormatter MessageFormatter
+        {
+            get
+            {
+                if (_messageFormatter == null)
+                {
+                    InitializeMessageFormatter();
+                }
+                return _messageFormatter;
+            }
+        }
+
+        private void InitializeMessageFormatter()
+        {
+            _messageFormatter = new MessageFormatter();
+        }
+
+        private LoggingInfo GetLoggingInfo()
+        {
+            LoggingInfo info = new LoggingInfo
+            {
+                LogParameters = LogParameters,
+                LogReturnValue = LogReturnValue,
+                LogExecutionTime = LogExecutionTime,
+                MethodName = _methodName,
+                DeclaringType = _declaringType,
+                Stopwatch = Stopwatch
+            };
+            return info;
         }
     }
 }
