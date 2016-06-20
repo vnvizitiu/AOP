@@ -47,3 +47,13 @@
 /PostSharpImp/Aspects.Logging.sln.DotSettings.user
 /PostSharpImp/Aspects.Logging.sln.DotSettings
 /PostSharpImp/Aspects.Logging/Aspects.Logging.csproj.DotSettings
+/PostSharpImp/Aspects.Logging.NLog.Tests/bin/Debug
+/PostSharpImp/Aspects.Logging.NLog.Tests/obj/Debug
+/PostSharpImp/Aspects.Logging.Tests.Commons/bin/Debug
+/PostSharpImp/Aspects.Logging.Tests.Commons/obj/Debug
+/PostSharpImp/packages/FluentAssertions.4.9.0
+/PostSharpImp/packages/NLog.4.3.5
+/PostSharpImp/packages/NUnit.3.2.1
+/PostSharpImp/packages/PostSharp.4.2.28
+/PostSharpImp/Aspects.Logging.Tests.Commons2/bin/Debug
+/PostSharpImp/Aspects.Logging.Tests.Commons2/obj/Debug

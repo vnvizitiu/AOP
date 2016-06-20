@@ -1,4 +1,4 @@
-﻿namespace Aspects.Logging.Tests.Dummies
+﻿namespace Aspects.Logging.Tests.Commons.Dummies
 {
     [Log]
     public class Generic<T>

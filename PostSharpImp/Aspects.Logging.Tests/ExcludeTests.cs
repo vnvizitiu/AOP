@@ -1,5 +1,5 @@
 ﻿using System;
-using Aspects.Logging.Tests.Dummies;
+using Aspects.Logging.Tests.Commons.Dummies;
 using FluentAssertions;
 using NUnit.Framework;
 
@@ -104,7 +104,7 @@ namespace Aspects.Logging.Tests
 
             // assert
             _logger.DebugCallCount.Should()
-                .Be(9, "because we only hit the Entry, Success and Exit methods for the instance constructor and property setter");
+                .Be(6, "because we only hit the Entry, Success and Exit methods for the instance constructor and property setter");
         }
 
         [Test]

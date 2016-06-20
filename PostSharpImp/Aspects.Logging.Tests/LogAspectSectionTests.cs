@@ -12,7 +12,6 @@ namespace Aspects.Logging.Tests
     public class LogAspectSectionTests
     {
         [Test]
-        [Ignore("Because it depends on the file system")]
         public void OpenLogAspectConfiguration_ShouldReturnAValidConfig()
         {
             // arrange
@@ -28,7 +27,6 @@ namespace Aspects.Logging.Tests
         }
 
         [Test]
-        [Ignore("Because it depends on the file system")]
         public void OpenLogAspectConfigurationAndSave_ShouldReturnAValidConfig()
         {
             // arrange

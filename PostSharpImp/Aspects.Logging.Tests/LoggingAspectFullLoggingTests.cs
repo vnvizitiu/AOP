@@ -1,5 +1,5 @@
 ﻿using System;
-using Aspects.Logging.Tests.Dummies;
+using Aspects.Logging.Tests.Commons.Dummies;
 using FluentAssertions;
 using NUnit.Framework;
 

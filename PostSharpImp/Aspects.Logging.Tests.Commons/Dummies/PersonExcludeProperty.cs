@@ -1,6 +1,4 @@
-﻿using Aspects.Logging;
-
-namespace Aspects.Logging.Tests.Dummies
+﻿namespace Aspects.Logging.Tests.Commons.Dummies
 {
     [Log(Excludes = Excludes.Properties)]
     public class PersonExcludeProperty
