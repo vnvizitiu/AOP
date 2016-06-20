@@ -17,6 +17,8 @@ namespace Aspects.Logging
     /// </remarks>
     public static class FormattableObjectExtension
     {
+        private static readonly Regex RegexFormatPattern = new Regex(@"({)([^}]+)(})", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static string ToString(this object instance, string format, IFormatProvider formatProvider = null)
         {
@@ -25,8 +27,7 @@ namespace Aspects.Logging
 
             StringBuilder sb = new StringBuilder();
             Type type = instance.GetType();
-            Regex regex = new Regex(@"({)([^}]+)(})", RegexOptions.IgnoreCase | RegexOptions.Compiled);
-            MatchCollection matches = regex.Matches(format);
+            MatchCollection matches = RegexFormatPattern.Matches(format);
             int startIndex = 0;
 
             foreach (Match match in matches)
