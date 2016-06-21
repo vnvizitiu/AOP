@@ -18,25 +18,29 @@ namespace Aspects.Logging.Nlog.Tests
         [Test]
         public void UsingLoggingAspectWithNLog_ShouldUseNlogger()
         {
-            var config = new LoggingConfiguration();
+            // arrange - setup nlog
+            LoggingConfiguration config = new LoggingConfiguration();
 
-            var memoryTarget = new MemoryTarget();
+            MemoryTarget memoryTarget = new MemoryTarget();
             memoryTarget.Layout = @"${message}";
             config.AddTarget("memory", memoryTarget);
 
-            var rule = new LoggingRule("*", LogLevel.Debug, memoryTarget);
+            LoggingRule rule = new LoggingRule("*", LogLevel.Debug, memoryTarget);
             config.LoggingRules.Add(rule);
 
             LogManager.Configuration = config;
 
+            // arrange - setup logger
             LogAttribute.Logger = new NLogLogger("memory");
 
-            var person = new Person()
+            // act
+            Person person = new Person()
             {
                 Name = "test",
                 Balance = 0.0d
             };
 
+            // assert
             memoryTarget.Logs.Count.Should().Be(9, "because we called the logging 6 times");
         }
     }

@@ -56,11 +56,14 @@
     <Compile Include="ExcludeTests.cs" />
     <Compile Include="FormattableObjectExtensionTests.cs" />
     <Compile Include="LogAspectSectionTests.cs" />
+    <Compile Include="LogAttributeCreationTests.cs" />
     <Compile Include="LoggingAspectBaseFunctionalityTests.cs" />
     <Compile Include="LoggingAspectFullLoggingTests.cs" />
     <Compile Include="LoggingAspectGenericsTests.cs" />
     <Compile Include="MockLogger.cs" />
     <Compile Include="LoggerImplementation.Tests.cs" />
+    <Compile Include="ConsoleLoggerTests.cs" />
+    <Compile Include="NullLoggerTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
