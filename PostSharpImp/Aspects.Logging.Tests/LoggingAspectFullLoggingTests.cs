@@ -1,40 +1,41 @@
-﻿using System;
-using Aspects.Logging.Tests.Commons.Dummies;
-using FluentAssertions;
-using NUnit.Framework;
-
-namespace Aspects.Logging.Tests
+﻿namespace Aspects.Logging.Tests
 {
+    using System;
+    using Commons.Dummies;
+    using FluentAssertions;
+    using NUnit.Framework;
+    using Utilities;
+
     [TestFixture]
     public class LoggingAspectFullLoggingTests
     {
         [Test]
-        public void WhenTestingAFullTestcaseClass_ShouldLogEverything()
+        public void WhenTestingAFullTestcaseClassShouldLogEverything()
         {
-            var logger = new MockLogger();
+            MockLogger logger = new MockLogger();
             LogAttribute.Logger = logger;
 
-            var testClass = new FullTestClass
+            FullTestClass testClass = new FullTestClass
             {
                 Value = Guid.NewGuid().ToString()
             };
-            var val = testClass.Value;
+            testClass.Value.Should().NotBeNullOrEmpty();
 
-            testClass.EmbeddedMethods();
+            FullTestClass.EmbeddedMethod();
 
             logger.DebugCallCount.Should().Be(15, "because we call the Entry, Exit and Success methods for the constructor, property and methods, even private method");
         }
 
         [Test]
-        public void WhenTestingAFullTestcaseClassWithDebugDisplay_ShouldLogEverythingAndTheObject()
+        public void WhenTestingAFullTestcaseClassWithDebugDisplayShouldLogEverythingAndTheObject()
         {
-            var logger = new MockLogger();
+            MockLogger logger = new MockLogger();
             LogAttribute.Logger = logger;
 
-            var testClass = CreateTestClass();
-            var val = testClass.Value;
+            FullTestClass testClass = CreateTestClass();
+            testClass.Value.Should().NotBeNullOrWhiteSpace();
 
-            testClass.EmbeddedMethods();
+            FullTestClass.EmbeddedMethod();
 
             logger.DebugCallCount.Should().Be(24, "because we call the Entry, Exit and Success methods for the constructor, property and methods, even private method");
         }

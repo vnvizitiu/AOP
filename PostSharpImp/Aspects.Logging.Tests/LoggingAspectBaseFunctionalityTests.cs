@@ -1,9 +1,10 @@
-﻿using System;
-using FluentAssertions;
-using NUnit.Framework;
-
-namespace Aspects.Logging.Tests
+﻿namespace Aspects.Logging.Tests
 {
+    using System;
+    using FluentAssertions;
+    using NUnit.Framework;
+    using Utilities;
+
     [TestFixture]
     public class LoggingAspectBaseFunctionalityTests
     {
@@ -16,18 +17,24 @@ namespace Aspects.Logging.Tests
             LogAttribute.Logger = _logger;
         }
 
+        /// <summary>
+        /// The when calling working method should hit debug 3 times.
+        /// </summary>
         [Test]
-        public void WhenCallingWorkingMethod_ShouldHitDebug3Times()
+        public void WhenCallingWorkingMethodShouldHitDebug3Times()
         {
             // act
             SomeMethod(1, null);
 
             // assert
-            _logger.DebugCallCount.Should().Be(3, "because we only hit the Entry, Succes, and Exit methods");
+            _logger.DebugCallCount.Should().Be(3, "because we only hit the Entry, Success, and Exit methods");
         }
 
+        /// <summary>
+        /// The when calling method with exception should hit debug and error.
+        /// </summary>
         [Test]
-        public void WhenCallingMethodWithException_ShouldHitDebugAndError()
+        public void WhenCallingMethodWithExceptionShouldHitDebugAndError()
         {
             // act
             try
@@ -35,8 +42,8 @@ namespace Aspects.Logging.Tests
                 ThrowsException();
             }
             catch (Exception e)
-                // we leave the base exception type here so we can catch any exception and later verify that it is the right type
             {
+                // we leave the base exception type here so we can catch any exception and later verify that it is the right type
                 // assert
                 e.Should()
                     .BeOfType<NotImplementedException>("because we only explicitly threw a NotImplementedException");
@@ -46,12 +53,14 @@ namespace Aspects.Logging.Tests
         }
 
         [Log(LogParameters = true)]
-        public void SomeMethod(int num, int? num2)
+        // ReSharper disable UnusedParameter.Local
+        private static void SomeMethod(int num, int? num2)
+        // ReSharper restore UnusedParameter.Local
         {
         }
 
         [Log]
-        public void ThrowsException()
+        private static void ThrowsException()
         {
             throw new NotImplementedException();
         }

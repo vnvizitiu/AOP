@@ -1,14 +1,19 @@
-﻿using System;
-using NLog;
-using ILogger = Aspects.Logging.Loggers.ILogger;
-
-namespace Aspects.Logging.Nlog
+﻿namespace Aspects.Logging.Nlog
 {
+    using System;
+
+    using NLog;
+
+    using ILogger = Loggers.ILogger;
+
     /// <summary>
     /// A logger that implements Nlog
     /// </summary>
     public class NLogLogger : ILogger
     {
+        /// <summary>
+        /// The logger instance
+        /// </summary>
         private readonly Logger _logger;
 
         /// <summary>
@@ -18,7 +23,6 @@ namespace Aspects.Logging.Nlog
         public NLogLogger(string loggerName)
         {
             _logger = LogManager.GetLogger(loggerName);
-
         }
 
         /// <summary>

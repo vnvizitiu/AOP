@@ -1,17 +1,18 @@
-﻿using System;
-using System.Configuration;
-using System.Diagnostics;
-using System.Globalization;
-using System.Linq;
-using System.Reflection;
-using Aspects.Logging.Configuration;
-using Aspects.Logging.Helpers;
-using Aspects.Logging.Loggers;
-using Aspects.Logging.Models;
-using PostSharp.Aspects;
-
-namespace Aspects.Logging
+﻿namespace Aspects.Logging
 {
+    using System;
+    using System.Diagnostics;
+    using System.Globalization;
+    using System.Reflection;
+
+    using Configuration.Abstract;
+    using Configuration.Concrete;
+    using Helpers;
+    using Loggers;
+    using Models;
+
+    using PostSharp.Aspects;
+
     /// <summary>
     /// The implementation of the <see cref="OnMethodBoundaryAspect"/>
     /// </summary>
@@ -20,44 +21,76 @@ namespace Aspects.Logging
     [AttributeUsage(AttributeTargets.Assembly | AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Constructor | AttributeTargets.Method | AttributeTargets.Property | AttributeTargets.Event | AttributeTargets.Interface, AllowMultiple = true, Inherited = false)]
     public sealed class LogAttribute : OnMethodBoundaryAspect
     {
-        private bool _shouldLog = true;
-
-        /// The method name provided at compile time
-        private string _methodName;
-
-        /// The declaring type of the method provided at compile time
-        private Type _declaringType;
-
+        /// <summary>
         /// Logger implementation via injection
-        private static ILogger _logger;
-
-        // The stopwatch instance used for measuring execution time
-        [NonSerialized]
-        private Stopwatch _stopwatch;
-
-        private IMessageFormatter _messageFormatter;
+        /// </summary>
+        private static ILogger logger;
 
         /// <summary>
-        /// Gets or sets the exclude flags.
+        /// The configuration provider.
         /// </summary>
-        public Excludes Excludes { get; set; }
+        private static IConfigurationProvider configurationProvider;
 
+        /// <summary>
+        /// The a flag indication wether to log or not.
+        /// </summary>
+        private bool _shouldLog = true;
+
+        /// <summary>
+        /// The method name provided at compile time
+        /// </summary>
+        private string _methodName;
+
+        /// <summary>
+        /// The declaring type of the method provided at compile time
+        /// </summary>
+        private Type _declaringType;
+
+        /// <summary>
+        /// The stopwatch instance used for measuring execution time
+        /// </summary>
+        [NonSerialized]
+        private Stopwatch _stopwatch;
 
         /// <summary>
         /// Gets or sets the logger.
         /// </summary>
         public static ILogger Logger
         {
-            get
+            private get
             {
-                if (_logger == null)
-                {
-                    InstantiateLogger();
-                }
-                return _logger;
+                return logger ?? (logger = ConfigurationProvider.GetLogger());
             }
-            set { _logger = value; }
+
+            set
+            {
+                logger = value;
+            }
         }
+
+        /// <summary>
+        /// Gets or sets the configuration provider.
+        /// </summary>
+        /// <value>
+        /// The configuration provider.
+        /// </value>
+        public static IConfigurationProvider ConfigurationProvider
+        {
+            private get
+            {
+                return configurationProvider ?? (configurationProvider = new ConfigFileConfigurationProvider());
+            }
+
+            set
+            {
+                configurationProvider = value;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the exclude flags.
+        /// </summary>
+        public Excludes Excludes { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether to log the parameters.
@@ -84,14 +117,43 @@ namespace Aspects.Logging
         public bool LogReturnValue { get; set; }
 
         /// <summary>
-        /// Gets or sets the output fomat.
+        /// Gets or sets the output.
         /// </summary>
+        /// <value> The output. </value>
+        // ReSharper disable once UnusedAutoPropertyAccessor.Global
+        // ReSharper disable once MemberCanBePrivate.Global
         public string Output { get; set; }
 
         /// <summary>
         /// Gets or sets the tags.
         /// </summary>
+        // ReSharper disable once UnusedAutoPropertyAccessor.Global
         public string Tags { get; set; }
+
+        /// <summary>
+        /// Gets the full name of the current method.
+        /// </summary>
+        /// <value>
+        /// The full name of the current method.
+        /// </value>
+        public string CurrentMethodFullName
+        {
+            get { return string.Format(CultureInfo.InvariantCulture, "{0}.{1}", _declaringType.FullName, _methodName); }
+        }
+
+        /// <summary>
+        /// Gets the stopwatch.
+        /// </summary>
+        /// <value>
+        /// The stopwatch.
+        /// </value>
+        private Stopwatch Stopwatch
+        {
+            get
+            {
+                return _stopwatch ?? (_stopwatch = new Stopwatch());
+            }
+        }
 
         /// <summary>
         /// Method invoked at build time to initialize the instance fields of the current aspect. This method is invoked
@@ -101,13 +163,11 @@ namespace Aspects.Logging
         /// <param name="aspectInfo">Reserved for future usage.</param>
         public override void CompileTimeInitialize(MethodBase method, AspectInfo aspectInfo)
         {
-            if (method != null)
+            if (method == null) return;
+            _methodName = method.Name;
+            if (method.DeclaringType != null)
             {
-                _methodName = method.Name;
-                if (method.DeclaringType != null)
-                {
-                    _declaringType = method.DeclaringType;
-                }
+                _declaringType = method.DeclaringType;
             }
         }
 
@@ -123,7 +183,25 @@ namespace Aspects.Logging
         {
             if (method == null) throw new ArgumentNullException("method");
 
-            return CheckIfMethodIsValid(method);
+            if (method.Name.Contains("ToString"))
+                return false;
+            if (typeof(ILogger).IsAssignableFrom(_declaringType))
+                return false;
+            if (typeof(IConfigurationProvider).IsAssignableFrom(_declaringType))
+                return false;
+            if (typeof(MessageFormatter).IsAssignableFrom(_declaringType))
+                return false;
+            if (method.DeclaringType == GetType())
+                return false;
+            if ((Excludes & Excludes.StaticConstructor) == Excludes.StaticConstructor && method.Name.StartsWith(".cctor", StringComparison.OrdinalIgnoreCase))
+                return false;
+            if ((Excludes & Excludes.InstanceConstructors) == Excludes.InstanceConstructors && method.Name.StartsWith(".ctor", StringComparison.OrdinalIgnoreCase))
+                return false;
+            if ((Excludes & Excludes.PropertyGetters) == Excludes.PropertyGetters && method.Name.StartsWith("get_", StringComparison.OrdinalIgnoreCase))
+                return false;
+            if ((Excludes & Excludes.PropertySetters) == Excludes.PropertySetters && method.Name.StartsWith("set_", StringComparison.OrdinalIgnoreCase))
+                return false;
+            return true;
         }
 
         /// <summary>
@@ -151,6 +229,14 @@ namespace Aspects.Logging
             Logger.Debug(message);
         }
 
+        /// <summary>
+        /// Method executed <b>after</b> the body of methods to which this aspect is applied,
+        /// but only when the method successfully returns (i.e. when no exception flies out
+        /// the method.).
+        /// </summary>
+        /// <param name="args">Event arguments specifying which method
+        /// is being executed and which are its arguments.</param>
+        /// <exception cref="System.ArgumentNullException">args</exception>
         public override void OnSuccess(MethodExecutionArgs args)
         {
             if (args == null) throw new ArgumentNullException("args");
@@ -165,6 +251,13 @@ namespace Aspects.Logging
             Logger.Debug(message);
         }
 
+        /// <summary>
+        /// Method executed <b>after</b> the body of methods to which this aspect is applied,
+        /// in case that the method resulted with an exception.
+        /// </summary>
+        /// <param name="args">Event arguments specifying which method
+        /// is being executed and which are its arguments.</param>
+        /// <exception cref="System.ArgumentNullException">args</exception>
         public override void OnException(MethodExecutionArgs args)
         {
             if (args == null) throw new ArgumentNullException("args");
@@ -181,6 +274,14 @@ namespace Aspects.Logging
             Logger.Error(message, args.Exception);
         }
 
+        /// <summary>
+        /// Method executed <b>after</b> the body of methods to which this aspect is applied,
+        /// even when the method exists with an exception (this method is invoked from
+        /// the <c>finally</c> block).
+        /// </summary>
+        /// <param name="args">Event arguments specifying which method
+        /// is being executed and which are its arguments.</param>
+        /// <exception cref="System.ArgumentNullException">args</exception>
         public override void OnExit(MethodExecutionArgs args)
         {
             if (args == null) throw new ArgumentNullException("args");
@@ -200,136 +301,28 @@ namespace Aspects.Logging
             Logger.Debug(message);
         }
 
+        /// <summary>
+        /// Initializes the current aspect.
+        /// </summary>
+        /// <param name="method">Method to which the current aspect is applied.</param>
         public override void RuntimeInitialize(MethodBase method)
         {
-            var config = LogAspectConfig.Open();
-            if (config != null)
-            {
-                var tags = config.Tags.OfType<TagElement>().ToList();
-                var includedTags = tags.Where(element => element.IncludeTag).Select(element => element.Name).ToList();
-                var excludedTags = tags.Where(element => element.ExcludeTag).Select(element => element.Name).ToList();
-
-                if (includedTags.Any(tag => CurrentMethodFullName.StartsWith(tag, StringComparison.OrdinalIgnoreCase)))
-                {
-                    _shouldLog = true;
-                    return;
-                }
-
-                if (excludedTags.Any(tag => CurrentMethodFullName.StartsWith(tag, StringComparison.OrdinalIgnoreCase)))
-                {
-                    _shouldLog = false;
-                    return;
-                }
-
-                if (!string.IsNullOrWhiteSpace(Tags))
-                {
-                    var currentTags = Tags.Split(new[] { ',', ';', ' ' }, StringSplitOptions.RemoveEmptyEntries).Select(tag => tag.Trim()).ToList();
-                    if (currentTags.Any(currentTag => includedTags.Any(includedTag => currentTag.Equals(includedTag, StringComparison.OrdinalIgnoreCase))))
-                    {
-                        _shouldLog = true;
-                        return;
-                    }
-                    if (currentTags.Any(currentTag => excludedTags.Any(excludedTag => currentTag.Equals(excludedTag, StringComparison.OrdinalIgnoreCase))))
-                    {
-                        _shouldLog = false;
-                    }
-                }
-            }
+            _shouldLog = ConfigurationProvider.ShouldLog(this);
         }
 
-        private static void InstantiateLogger()
-        {
-            LogAspectConfig config = LogAspectConfig.Open();
-            if (config != null)
-            {
-                if (!string.IsNullOrWhiteSpace(config.Logger) && config.UseConsoleLogger)
-                    throw new ConfigurationErrorsException(
-                        "The UseConsoleLogger and the Logger config cannot both be filled in at the same time");
-                if (config.UseConsoleLogger)
-                {
-                    _logger = new ConsoleLogger();
-                }
-                else if (!string.IsNullOrWhiteSpace(config.Logger))
-                {
-                    Type type = Type.GetType(config.Logger);
-                    if (type != null)
-                        _logger = (ILogger)Activator.CreateInstance(type);
-                    else
-                        _logger = new NullLogger();
-                }
-                else
-                {
-                    _logger = new NullLogger();
-                }
-            }
-            else
-            {
-                _logger = new NullLogger();
-            }
-        }
-
-        private string CurrentMethodFullName
-        {
-            get { return string.Format(CultureInfo.InvariantCulture, "{0}.{1}", _declaringType.FullName, _methodName); }
-        }
-
-        private bool CheckIfMethodIsValid(MethodBase method)
-        {
-            if (method.Name.Contains("ToString"))
-                return false;
-            if (typeof(ILogger).IsAssignableFrom(_declaringType))
-                return false;
-            if (method.DeclaringType == GetType())
-                return false;
-            if ((Excludes & Excludes.StaticConstructor) == Excludes.StaticConstructor && method.Name.StartsWith(".cctor", StringComparison.OrdinalIgnoreCase))
-                return false;
-            if ((Excludes & Excludes.InstanceConstructors) == Excludes.InstanceConstructors && method.Name.StartsWith(".ctor", StringComparison.OrdinalIgnoreCase))
-                return false;
-            if ((Excludes & Excludes.PropertyGetters) == Excludes.PropertyGetters && method.Name.StartsWith("get_", StringComparison.OrdinalIgnoreCase))
-                return false;
-            if ((Excludes & Excludes.PropertySetters) == Excludes.PropertySetters && method.Name.StartsWith("set_", StringComparison.OrdinalIgnoreCase))
-                return false;
-            return true;
-        }
-
-        private Stopwatch Stopwatch
-        {
-            get
-            {
-                if (_stopwatch == null)
-                {
-                    _stopwatch = new Stopwatch();
-                }
-                return _stopwatch;
-            }
-        }
-
-        private IMessageFormatter MessageFormatter
-        {
-            get
-            {
-                if (_messageFormatter == null)
-                {
-                    InitializeMessageFormatter();
-                }
-                return _messageFormatter;
-            }
-        }
-
-        private void InitializeMessageFormatter()
-        {
-            _messageFormatter = new MessageFormatter();
-        }
-
+        /// <summary>
+        /// Gets the logging information.
+        /// </summary>
+        /// <returns>Returns a instace of the formating options</returns>
         private LoggingInfo GetLoggingInfo()
         {
             LoggingInfo info = new LoggingInfo
             {
-                LogParameters = LogParameters,
-                LogReturnValue = LogReturnValue,
-                LogExecutionTime = LogExecutionTime,
-                MethodName = _methodName,
-                DeclaringType = _declaringType,
+                LogParameters = LogParameters, 
+                LogReturnValue = LogReturnValue, 
+                LogExecutionTime = LogExecutionTime, 
+                MethodName = _methodName, 
+                DeclaringType = _declaringType, 
                 Stopwatch = Stopwatch
             };
             return info;

@@ -1,49 +1,31 @@
-﻿using System;
-using System.Configuration;
-using System.IO;
-using System.Reflection;
-using Aspects.Logging.Configuration;
-using FluentAssertions;
-using NUnit.Framework;
-
-namespace Aspects.Logging.Tests
+﻿namespace Aspects.Logging.Tests
 {
+    using System;
+    using System.IO;
+    using System.Reflection;
+    using FluentAssertions;
+    using Logging.Configuration.Infrastructure;
+    using NUnit.Framework;
+
     [TestFixture]
     public class LogAspectSectionTests
     {
+        /// <summary>
+        /// The open log aspect configuration should return a valid config.
+        /// </summary>
         [Test]
-        public void OpenLogAspectConfiguration_ShouldReturnAValidConfig()
+        public void OpenLogAspectConfigurationShouldReturnAValidConfig()
         {
             // arrange
-            var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Path.GetFileName(Assembly.GetExecutingAssembly().Location) + ".config");
+            string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Path.GetFileName(Assembly.GetExecutingAssembly().Location) + ".config");
             File.Exists(path).Should().BeTrue("because the file needs to exist");
 
             // act
-            var config = LogAspectConfig.Open(path);
+            LogAspectConfig config = LogAspectConfig.Open(path);
 
             // assert
             config.Should().NotBeNull("because a valid output path has been provided");
             File.ReadAllText(path).Contains("section").Should().BeTrue("because we added the section at runtime");
-        }
-
-        [Test]
-        public void OpenLogAspectConfigurationAndSave_ShouldReturnAValidConfig()
-        {
-            // arrange
-            var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Path.GetFileName(Assembly.GetExecutingAssembly().Location));
-            File.Exists(path).Should().BeTrue("because the file needs to exist");
-
-            System.Configuration.Configuration configuration = ConfigurationManager.OpenExeConfiguration(path);
-            configuration.Sections.Remove("LogAspectConfig");
-            configuration.Save();
-
-            // act
-            var config = LogAspectConfig.Open(path);
-            config.Save();
-
-            // assert
-            config.Should().NotBeNull("because a valid output path has been provided");
-            File.ReadAllText(path+".config").Contains("tags").Should().BeTrue("because we added the section at runtime after the save");
         }
     }
 }

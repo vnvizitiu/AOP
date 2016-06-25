@@ -1,29 +1,40 @@
-﻿using System;
-using System.Globalization;
-using System.Reflection;
-using System.Text;
-using System.Text.RegularExpressions;
-
-namespace Aspects.Logging
+﻿namespace Aspects.Logging.Extensions
 {
+    using System;
+    using System.Globalization;
+    using System.Reflection;
+    using System.Text;
+    using System.Text.RegularExpressions;
+
     /// <summary>
     ///  An extension method meant to present an object states using a string format
     /// </summary>
     /// <remarks>
-    /// http://haacked.com/archive/2009/01/04/fun-with-named-formats-string-parsing-and-edge-cases.aspx/
+    ///  http://haacked.com/archive/2009/01/04/fun-with-named-formats-string-parsing-and-edge-cases.aspx/
     /// </remarks>
     /// <remarks>
-    /// http://www.hanselman.com/blog/ASmarterOrPureEvilToStringWithExtensionMethods.aspx
+    ///  http://www.hanselman.com/blog/ASmarterOrPureEvilToStringWithExtensionMethods.aspx
     /// </remarks>
     public static class FormattableObjectExtension
     {
+        /// <summary>
+        /// The regex format pattern.
+        /// </summary>
         private static readonly Regex RegexFormatPattern = new Regex(@"({)([^}]+)(})", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
+        /// <summary>
+        /// Returns a <see cref="System.String" /> that represents this instance.
+        /// </summary>
+        /// <param name="instance">The instance.</param>
+        /// <param name="format">The format.</param>
+        /// <param name="formatProvider">The format provider.</param>
+        /// <returns>
+        /// A <see cref="System.String" /> that represents this instance.
+        /// </returns>
+        /// <exception cref="System.ArgumentNullException">instance</exception>
         public static string ToString(this object instance, string format, IFormatProvider formatProvider = null)
-        {
+        { 
             if (instance == null) throw new ArgumentNullException("instance");
-            if (format == null) throw new ArgumentNullException("format");
 
             StringBuilder sb = new StringBuilder();
             Type type = instance.GetType();
@@ -41,12 +52,14 @@ namespace Aspects.Logging
 
                 int formatIndex = propertyNameGroup.Value.IndexOf(":", StringComparison.Ordinal); // formatting would be to the right of the colon
 
-                if (formatIndex == -1) // no formatting, no worries
+                if (formatIndex == -1)
                 {
+                    // no formatting, no worries
                     toGet = propertyNameGroup.Value;
                 }
-                else // pickup the formatting
+                else
                 {
+                    // pickup the formatting
                     toGet = propertyNameGroup.Value.Substring(0, formatIndex);
                     toFormat = propertyNameGroup.Value.Substring(formatIndex + 1);
                 }
@@ -60,8 +73,9 @@ namespace Aspects.Logging
                     retrievedType = retrievedPropertyInfo.PropertyType;
                     retrievedObject = retrievedPropertyInfo.GetValue(instance, null);
                 }
-                else // try fields
+                else
                 {
+                    // try fields
                     FieldInfo retrievedField = type.GetField(toGet);
                     if (retrievedField != null)
                     {
@@ -70,39 +84,55 @@ namespace Aspects.Logging
                     }
                 }
 
-                if (retrievedType != null) // Cool, we found something
+                if (retrievedType != null)
                 {
+                    // Cool, we found something
                     string result;
-                    if (string.IsNullOrWhiteSpace(toFormat)) // no format info
+                    const BindingFlags BindingFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.InvokeMethod | BindingFlags.IgnoreCase;
+                    if (string.IsNullOrWhiteSpace(toFormat))
                     {
+                        // no format info
                         result =
-                            retrievedType.InvokeMember("ToString",
-                            BindingFlags.Public | BindingFlags.NonPublic | 
-                            BindingFlags.Instance | BindingFlags.InvokeMethod |
-                            BindingFlags.IgnoreCase, null, retrievedObject, null, CultureInfo.InvariantCulture) as string;
+                            retrievedType.InvokeMember(
+                                "ToString",
+                                BindingFlags,
+                                null, 
+                                retrievedObject, 
+                                null, 
+                                CultureInfo.InvariantCulture) as string;
                     }
-                    else // format info
+                    else
                     {
-                        result = retrievedType.InvokeMember("ToString",
-                            BindingFlags.Public | BindingFlags.NonPublic |
-                            BindingFlags.Instance | BindingFlags.InvokeMethod |
-                            BindingFlags.IgnoreCase, null, retrievedObject,
-                            new object[] { toFormat, formatProvider }, CultureInfo.InvariantCulture) as string;
+                        // format info
+                        result =
+                            retrievedType.InvokeMember(
+                                "ToString", 
+                                BindingFlags, 
+                                null, 
+                                retrievedObject, 
+                                new object[] { toFormat, formatProvider }, 
+                                CultureInfo.InvariantCulture) as string;
                     }
+
                     sb.Append(result);
                 }
-                else // didn't find a property with that name, so be gracious and put it back
+                else
                 {
+                    // didn't find a property with that name, so be gracious and put it back
                     sb.Append("{");
                     sb.Append(propertyNameGroup.Value);
                     sb.Append("}");
                 }
+
                 startIndex = propertyNameGroup.Index + propertyNameGroup.Length + 1;
             }
-            if (startIndex < format.Length) // include the rest (end) of the string
+
+            if (startIndex < format.Length)
             {
+                // include the rest (end) of the string
                 sb.Append(format.Substring(startIndex));
             }
+
             return sb.ToString();
         }
     }

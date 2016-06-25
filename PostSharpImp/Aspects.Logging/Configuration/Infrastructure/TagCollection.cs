@@ -1,9 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Configuration;
-
-namespace Aspects.Logging.Configuration
+﻿namespace Aspects.Logging.Configuration.Infrastructure
 {
+    using System;
+    using System.Configuration;
+
     /// <summary>
     ///  Configuration section containing the tags which should be included or excluded
     /// </summary>
@@ -16,7 +15,6 @@ namespace Aspects.Logging.Configuration
         /// <returns>
         /// A newly created <see cref="T:System.Configuration.ConfigurationElement" />.
         /// </returns>
-        /// <exception cref="System.NotImplementedException"></exception>
         protected override ConfigurationElement CreateNewElement()
         {
             return new TagElement();
@@ -29,7 +27,7 @@ namespace Aspects.Logging.Configuration
         /// <returns>
         /// An <see cref="T:System.Object" /> that acts as the key for the specified <see cref="T:System.Configuration.ConfigurationElement" />.
         /// </returns>
-        /// <exception cref="System.NotImplementedException"></exception>
+        /// <exception cref="System.NotImplementedException">This method is not implemented</exception>
         protected override object GetElementKey(ConfigurationElement element)
         {
             throw new NotImplementedException();

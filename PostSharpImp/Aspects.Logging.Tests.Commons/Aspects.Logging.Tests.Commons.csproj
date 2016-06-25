@@ -30,6 +30,12 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>Aspects.Logging.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="PostSharp, Version=4.2.27.0, Culture=neutral, PublicKeyToken=b13fd38b8f9c99d7, processorArchitecture=MSIL">
       <HintPath>..\packages\PostSharp.4.2.27\lib\net35-client\PostSharp.dll</HintPath>
@@ -45,6 +51,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Dummies\FormatableObject.cs" />
     <Compile Include="Dummies\FullTestClass.cs" />
     <Compile Include="Dummies\Generic.cs" />
     <Compile Include="Dummies\Person.cs" />
@@ -53,7 +60,6 @@
     <Compile Include="Dummies\PersonExcludeProperty.cs" />
     <Compile Include="Dummies\PersonExcludePropertyConstructors.cs" />
     <Compile Include="Dummies\PersonExcludePropertyGetters.cs" />
-    <Compile Include="Dummies\PersonExcludePropertySetters.cs" />
     <Compile Include="Dummies\PersonExcludeStaticConstructor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -64,6 +70,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Aspects.Logging.snk" />
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -1,7 +1,7 @@
-﻿using System;
-
-namespace Aspects.Logging.Loggers
+﻿namespace Aspects.Logging.Loggers
 {
+    using System;
+
     /// <summary>
     ///  Represents a logger that logs to the console using color output
     /// </summary>
@@ -14,7 +14,7 @@ namespace Aspects.Logging.Loggers
         /// <param name="message">The message.</param>
         public void Trace(string message)
         {
-            var color = Console.ForegroundColor;
+            ConsoleColor color = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.Green;
             Console.WriteLine(message);
             Console.ForegroundColor = color;
@@ -26,7 +26,7 @@ namespace Aspects.Logging.Loggers
         /// <param name="message">The message.</param>
         public void Debug(string message)
         {
-            var color = Console.ForegroundColor;
+            ConsoleColor color = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.White;
             Console.WriteLine(message);
             Console.ForegroundColor = color;
@@ -47,7 +47,7 @@ namespace Aspects.Logging.Loggers
         /// <param name="message">The message.</param>
         public void Warn(string message)
         {
-            var color = Console.ForegroundColor;
+            ConsoleColor color = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine(message);
             Console.ForegroundColor = color;
@@ -60,7 +60,7 @@ namespace Aspects.Logging.Loggers
         /// <param name="exception">The exception.</param>
         public void Error(string message, Exception exception)
         {
-            var color = Console.ForegroundColor;
+            ConsoleColor color = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.Red;
             Console.WriteLine(message);
             Console.WriteLine(exception);
@@ -74,7 +74,7 @@ namespace Aspects.Logging.Loggers
         /// <param name="exception">The exception.</param>
         public void Fatal(string message, Exception exception)
         {
-            var color = Console.ForegroundColor;
+            ConsoleColor color = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.Red;
             Console.WriteLine(message);
             Console.WriteLine(exception);

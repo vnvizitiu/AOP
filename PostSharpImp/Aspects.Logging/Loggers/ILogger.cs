@@ -1,7 +1,7 @@
-﻿using System;
-
-namespace Aspects.Logging.Loggers
+﻿namespace Aspects.Logging.Loggers
 {
+    using System;
+
     /// <summary>
     /// Interface for implementing a logger
     /// </summary>

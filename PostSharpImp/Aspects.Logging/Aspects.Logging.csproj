@@ -51,14 +51,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Configuration\Abstract\IConfigFileSource.cs" />
+    <Compile Include="Configuration\Concrete\ConfigFileSource.cs" />
     <Compile Include="GlobalSuppressions.cs" />
-    <Compile Include="Helpers\IMessageFormatter.cs" />
+    <Compile Include="Configuration\Concrete\ConfigFileConfigurationProvider.cs" />
     <Compile Include="Helpers\MessageFormatter.cs" />
+    <Compile Include="Configuration\Abstract\IConfigurationProvider.cs" />
     <Compile Include="Loggers\ConsoleLogger.cs" />
     <Compile Include="Loggers\NullLogger.cs" />
-    <Compile Include="Configuration\LogAspectSection.cs" />
-    <Compile Include="Configuration\TagCollection.cs" />
-    <Compile Include="Configuration\TagElement.cs" />
+    <Compile Include="Configuration\Infrastructure\LogAspectSection.cs" />
+    <Compile Include="Configuration\Infrastructure\TagCollection.cs" />
+    <Compile Include="Configuration\Infrastructure\TagElementElement.cs" />
     <Compile Include="Excludes.cs" />
     <Compile Include="Extensions\FormattableObjectExtension.cs" />
     <Compile Include="Loggers\ILogger.cs" />
@@ -70,9 +73,7 @@
     <None Include="Aspects.Logging.snk" />
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Configuration\Infrastructure\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\PostSharp.4.2.27\tools\PostSharp.targets" Condition="Exists('..\packages\PostSharp.4.2.27\tools\PostSharp.targets')" />
   <Target Name="EnsurePostSharpImported" BeforeTargets="BeforeBuild" Condition="'$(PostSharp30Imported)' == ''">

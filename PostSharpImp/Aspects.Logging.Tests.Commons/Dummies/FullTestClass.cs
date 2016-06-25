@@ -1,22 +1,34 @@
-﻿using System;
-using System.Diagnostics;
-using System.Threading;
-
-namespace Aspects.Logging.Tests.Commons.Dummies
+﻿namespace Aspects.Logging.Tests.Commons.Dummies
 {
+    using System;
+    using System.Diagnostics;
+    using System.Threading;
+
+    /// <summary>
+    /// The full test class.
+    /// </summary>
     [Log(LogParameters = true, LogExecutionTime = true, LogReturnValue = true)]
     [DebuggerDisplay("{Value}")]
     public class FullTestClass
     {
+        /// <summary>
+        /// Gets or sets the value.
+        /// </summary>
         public string Value { get; set; }
 
-        public void EmbeddedMethods()
+        /// <summary>
+        /// The embedded method.
+        /// </summary>
+        public static void EmbeddedMethod()
         {
             Thread.Sleep(TimeSpan.FromSeconds(1));
             InnerMethod();
         }
 
-        private void InnerMethod()
+        /// <summary>
+        /// The inner method.
+        /// </summary>
+        private static void InnerMethod()
         {
             Thread.Sleep(TimeSpan.FromSeconds(.5));
         }

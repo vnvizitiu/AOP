@@ -1,136 +1,162 @@
-﻿using System;
-using Aspects.Logging.Tests.Commons.Dummies;
-using FluentAssertions;
-using NUnit.Framework;
-
-namespace Aspects.Logging.Tests
+﻿namespace Aspects.Logging.Tests
 {
+    using System;
+
+    using Aspects.Logging.Configuration.Abstract;
+
+    using Commons.Dummies;
+    using FluentAssertions;
+
+    using Moq;
+
+    using NUnit.Framework;
+    using Utilities;
+
+    /// <summary>
+    /// The exclude tests.
+    /// </summary>
     [TestFixture]
     public class ExcludeTests
     {
+        /// <summary>
+        /// The _logger.
+        /// </summary>
         private MockLogger _logger;
 
+        /// <summary>
+        /// The initialize logger and aspect.
+        /// </summary>
         [SetUp]
         public void InitializeLoggerAndAspect()
         {
             _logger = new MockLogger();
             LogAttribute.Logger = _logger;
+
+            Mock<IConfigurationProvider> mock = new Mock<IConfigurationProvider>();
+            mock.Setup(provider => provider.ShouldLog(It.IsAny<LogAttribute>())).Returns(true);
+            LogAttribute.ConfigurationProvider = mock.Object;
         }
 
-        [Test]
-        public void WhenAppliedToClassWithNoExclude_ShouldLogPropertyAndConstructor()
+        /// <summary>
+        /// The when applied to class with no exclude should log property and constructor.
+        /// </summary>
+        [Test]        
+        public void WhenAppliedToClassWithNoExcludeShouldLogPropertyAndConstructor()
         {
             // act
-            var person = new Person
+            Person person = new Person
             {
                 Name = Guid.NewGuid().ToString()
             };
-            var personName = person.Name;
+            person.Name.Should().NotBeNullOrWhiteSpace();
 
             // assert
             _logger.DebugCallCount.Should()
                 .Be(9, "because we hit the Entry, Success and Exit methods for both constructor and property");
         }
 
+        /// <summary>
+        /// The when applied to class with exclude property flag should not log property.
+        /// </summary>
         [Test]
-        public void WhenAppliedToClassWithExcludePropertyFlag_ShouldNotLogProperty()
+        public void WhenAppliedToClassWithExcludePropertyFlagShouldNotLogProperty()
         {
             // act
-            var personExcludeProperty = new PersonExcludeProperty
+            PersonExcludeProperty personExcludeProperty = new PersonExcludeProperty
             {
                 Name = Guid.NewGuid().ToString()
             };
-            var name = personExcludeProperty.Name;
+            personExcludeProperty.Name.Should().NotBeNullOrWhiteSpace();
 
             // assert
             _logger.DebugCallCount.Should()
                 .Be(3, "because we only hit the Entry, Success and Exit methods for the constructor");
         }
 
+        /// <summary>
+        /// The when applied to class with exclude instance constructor flag should not log instance constructor.
+        /// </summary>
         [Test]
-        public void WhenAppliedToClassWithExcludeInstanceConstructorFlag_ShouldNotLogInstanceConstructor()
+        public void WhenAppliedToClassWithExcludeInstanceConstructorFlagShouldNotLogInstanceConstructor()
         {
             // act
-            var personExcludeInstanceConstructor = new PersonExcludeInstanceConstructor
+            PersonExcludeInstanceConstructor personExcludeInstanceConstructor = new PersonExcludeInstanceConstructor
             {
                 Name = Guid.NewGuid().ToString()
             };
-            var name = personExcludeInstanceConstructor.Name;
+            personExcludeInstanceConstructor.Name.Should().NotBeNullOrWhiteSpace();
 
             // assert
             _logger.DebugCallCount.Should()
                 .Be(6, "because we only hit the Entry, Success and Exit methods for the property getter and setter");
         }
 
+        /// <summary>
+        /// The when applied to class with exclude static constructor flag should not log static constructor.
+        /// </summary>
         [Test]
-        public void WhenAppliedToClassWithExcludeStaticConstructorFlag_ShouldNotLogStaticConstructor()
+        public void WhenAppliedToClassWithExcludeStaticConstructorFlagShouldNotLogStaticConstructor()
         {
             // act
-            var personExcludeStaticConstructor = new PersonExcludeStaticConstructor
+            PersonExcludeStaticConstructor personExcludeStaticConstructor = new PersonExcludeStaticConstructor
             {
                 Name = Guid.NewGuid().ToString()
             };
-            var name = personExcludeStaticConstructor.Name;
+            personExcludeStaticConstructor.Name.Should().NotBeNullOrWhiteSpace();
 
             // assert
             _logger.DebugCallCount.Should()
                 .Be(9, "because we only hit the Entry, Success and Exit methods for the instance constructor and property getter and setter");
         }
 
+        /// <summary>
+        /// The when applied to class with exclude propertie getters flag should not log propriety getters.
+        /// </summary>
         [Test]
-        public void WhenAppliedToClassWithExcludePropetieSettersFlag_ShouldNotLogPropertieSetters()
+        public void WhenAppliedToClassWithExcludePropertieGettersFlagShouldNotLogProprietyGetters()
         {
             // act
-            var personExcludePropertySetters = new PersonExcludePropertySetters
+            PersonExcludePropertyGetters personExcludePropertyGetters = new PersonExcludePropertyGetters
             {
                 Name = Guid.NewGuid().ToString()
             };
-            var name = personExcludePropertySetters.Name;
-
-            // assert
-            _logger.DebugCallCount.Should()
-                .Be(9, "because we only hit the Entry, Success and Exit methods for the instance and static constructor and property getter");
-        }
-
-        [Test]
-        public void WhenAppliedToClassWithExcludePropertieGettersFlag_ShouldNotLogPropetieGetters()
-        {
-            // act
-            var personExcludePropertyGetters = new PersonExcludePropertyGetters
-            {
-                Name = Guid.NewGuid().ToString()
-            };
-            var name = personExcludePropertyGetters.Name;
+            personExcludePropertyGetters.Name.Should().NotBeNullOrWhiteSpace();
 
             // assert
             _logger.DebugCallCount.Should()
                 .Be(6, "because we only hit the Entry, Success and Exit methods for the instance constructor and property setter");
         }
 
+        /// <summary>
+        /// The when applied to class with exclude constructors flag should not log constructors.
+        /// </summary>
         [Test]
-        public void WhenAppliedToClassWithExcludeConstructorsFlag_ShouldNotLogConstructors()
+        public void WhenAppliedToClassWithExcludeConstructorsFlagShouldNotLogConstructors()
         {
             // act
-            var personExcludeConstructors = new PersonExcludeConstructors
+            PersonExcludeConstructors personExcludeConstructors = new PersonExcludeConstructors
             {
                 Name = Guid.NewGuid().ToString()
             };
-            var name = personExcludeConstructors.Name;
+            personExcludeConstructors.Name.Should().NotBeNullOrWhiteSpace();
 
             // assert
             _logger.DebugCallCount.Should()
                 .Be(6, "because we only hit the Entry, Success and Exit methods for the property getter and setter");
         }
 
+        /// <summary>
+        /// The when applied to class with exclude properties and constructors flag should not log properties and constructor.
+        /// </summary>
         [Test]
-        public void WhenAppliedToClassWithExcludePropertiesAndConstructorsFlag_ShouldNotLogPropertiesAndConstructor()
+        public void WhenAppliedToClassWithExcludePropertiesAndConstructorsFlagShouldNotLogPropertiesAndConstructor()
         {
             // act
-            var personExcludePropertyConstructors = new PersonExcludePropertyConstructors
+            PersonExcludePropertyConstructors personExcludePropertyConstructors = new PersonExcludePropertyConstructors
             {
                 Name = Guid.NewGuid().ToString()
             };
-            var name = personExcludePropertyConstructors.Name;
+            personExcludePropertyConstructors.Name.Should().NotBeNullOrWhiteSpace();
 
             // assert
             _logger.DebugCallCount.Should()
